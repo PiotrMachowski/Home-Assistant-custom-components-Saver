@@ -1,0 +1,16 @@
+save_state:
+  description: >
+    Saves state and parameters of an entity
+  fields:
+    entity_id:
+      description: ID of entity that should be saved.
+      example: light.patio
+restore_state:
+  description: >
+    Executes a script using saved values
+  fields:
+    entity_id:
+      description: ID of entity to restore.
+      example: light.patio
+    restore_script:
+      description: Script used to restore values.

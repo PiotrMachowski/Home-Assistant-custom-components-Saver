@@ -1,0 +1,8 @@
+{
+  "domain": "saver",
+  "name": "Saver",
+  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver",
+  "dependencies": [],
+  "codeowners": ["PiotrMachowski"],
+  "requirements": []
+}
