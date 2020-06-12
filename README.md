@@ -39,6 +39,10 @@ data:
 ```
 
 ### Restore state
+To use state of an entity you have to use a following value in a template: `state`.
+
+To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `attr_current_position`.
+
 ```yaml
 service: saver.restore_state
 data:
@@ -76,6 +80,11 @@ data:
 ```
 
 ### Execute script
+
+To use state of an entity (in this case `cover.living_room`) you have to use a following value in a template: `cover_living_room_state`.
+
+To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `cover_living_room_attr_current_position`.
+
 ```yaml
 service: saver.execute
 data:
