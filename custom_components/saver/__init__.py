@@ -1,59 +1,27 @@
 import logging
 
-import homeassistant.helpers.config_validation as cv
 from homeassistant.core import Context
-
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.script import Script
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.const import CONF_ENTITY_ID, CONF_NAME
 
-import voluptuous as vol
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = 'saver'
-
-CONF_DELETE_AFTER_RUN = 'delete_after_run'
-CONF_RESTORE_SCRIPT = 'restore_script'
-CONF_SCRIPT = 'script'
-CONF_VALUE = 'value'
-
-SERVICE_DELETE = 'delete'
-SERVICE_DELETE_SCHEMA = vol.Schema({
-    vol.Required(CONF_ENTITY_ID): cv.entity_id
-})
-
-SERVICE_DELETE_VARIABLE = 'delete_variable'
-SERVICE_DELETE_VARIABLE_SCHEMA = vol.Schema({
-    vol.Required(CONF_NAME): cv.string
-})
-
-SERVICE_EXECUTE = 'execute'
-SERVICE_EXECUTE_SCHEMA = vol.Schema({
-    vol.Required(CONF_SCRIPT): cv.SCRIPT_SCHEMA
-})
-
-SERVICE_RESTORE_STATE = 'restore_state'
-SERVICE_RESTORE_STATE_SCHEMA = vol.Schema({
-    vol.Required(CONF_ENTITY_ID): cv.entity_id,
-    vol.Required(CONF_RESTORE_SCRIPT): cv.SCRIPT_SCHEMA,
-    vol.Optional(CONF_DELETE_AFTER_RUN, default=True): cv.boolean
-})
-
-SERVICE_SAVE_STATE = 'save_state'
-SERVICE_SAVE_STATE_SCHEMA = vol.Schema({
-    vol.Required(CONF_ENTITY_ID): cv.entity_id
-})
-
-SERVICE_SET_VARIABLE = 'set_variable'
-SERVICE_SET_VARIABLE_SCHEMA = vol.Schema({
-    vol.Required(CONF_NAME): cv.string,
-    vol.Required(CONF_VALUE): cv.string
-})
-
 
 def setup(hass, config):
+    if DOMAIN not in config:
+        return True
+    return setup_entry(hass, config)
+
+
+async def async_setup_entry(hass, config_entry):
+    result = await hass.async_add_executor_job(setup_entry, hass, config_entry)
+    return result
+
+
+def setup_entry(hass, config_entry):
     component = EntityComponent(_LOGGER, DOMAIN, hass)
     saver_entity = SaverEntity()
     component.add_entities([saver_entity])

@@ -4,5 +4,6 @@
   "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver",
   "dependencies": [],
   "codeowners": ["PiotrMachowski"],
-  "requirements": []
+  "requirements": [],
+  "config_flow": true
 }

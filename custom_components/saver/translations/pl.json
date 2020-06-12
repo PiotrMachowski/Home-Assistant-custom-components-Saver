@@ -1,0 +1,14 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Saver jest ju\u017c skonfigurowany."
+        },
+        "step": {
+            "user": {
+                "description": "Czy chcesz skonfigurowa\u0107 Saver?",
+                "title": "Saver"
+            }
+        },
+        "title": "Saver"
+    }
+}
