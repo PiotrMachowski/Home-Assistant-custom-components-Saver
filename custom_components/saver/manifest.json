@@ -4,7 +4,7 @@
   "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver",
   "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver/issues",
   "dependencies": [],
-  "codeowners": ["PiotrMachowski"],
+  "codeowners": ["@PiotrMachowski"],
   "requirements": [],
   "config_flow": true
 }
