@@ -1,5 +1,29 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+[![buymeacoffee_badge](https://img.shields.io/badge/Donate-buymeacoffe-ff813f?style=flat)](https://www.buymeacoffee.com/PiotrMachowski)
+
+# Saver
+
+This custom component allows you to save current state of any entity and use its data later to restore it.
+
+Additionally you can create simple variables and use their values in scripts.
+
+## Installation
+
+### HACS
+You can install this custom component using [HACS](https://hacs.xyz/).
+
+### Manual
+To manually install this custom component you have to copy the contents of `custom_components/saver/` to `<your config dir>/custom_components/saver/`.
 ## Configuration
 
+### GUI
+From the Home Assistant front page go to **Configuration** and then select **Integrations** from the list.
+
+Use the plus button in the bottom right to add a new integration called **Saver**.
+
+The success dialog will appear or an error will be displayed in the popup.
+
+### YAML
 In configuration.yaml:
 ```yaml
 saver:
@@ -69,3 +93,6 @@ data:
         entity_id: input_text.counter_description
         value: "Counter has value {{ counter }}"
 ```
+
+
+<a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
