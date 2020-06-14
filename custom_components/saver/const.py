@@ -10,6 +10,10 @@ CONF_RESTORE_SCRIPT = 'restore_script'
 CONF_SCRIPT = 'script'
 CONF_VALUE = 'value'
 
+SERVICE_CLEAR = 'clear'
+SERVICE_CLEAR_SCHEMA = vol.Schema({
+})
+
 SERVICE_DELETE = 'delete'
 SERVICE_DELETE_SCHEMA = vol.Schema({
     vol.Required(CONF_ENTITY_ID): cv.entity_id

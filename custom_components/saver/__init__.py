@@ -1,7 +1,8 @@
 import logging
+import asyncio
 
 from homeassistant.core import Context
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.script import Script
 from homeassistant.helpers.entity_component import EntityComponent
 
@@ -25,6 +26,9 @@ def setup_entry(hass, config_entry):
     component = EntityComponent(_LOGGER, DOMAIN, hass)
     saver_entity = SaverEntity()
     component.add_entities([saver_entity])
+
+    def clear(call):
+        saver_entity.clear()
 
     def delete(call):
         data = call.data
@@ -59,6 +63,7 @@ def setup_entry(hass, config_entry):
         value = data[CONF_VALUE]
         saver_entity.set_variable(name, value)
 
+    hass.services.register(DOMAIN, SERVICE_CLEAR, clear, SERVICE_CLEAR_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE, delete, SERVICE_DELETE_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE_VARIABLE, delete_variable, SERVICE_DELETE_VARIABLE_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_EXECUTE, execute, SERVICE_EXECUTE_SCHEMA)
@@ -69,7 +74,7 @@ def setup_entry(hass, config_entry):
     return True
 
 
-class SaverEntity(Entity):
+class SaverEntity(RestoreEntity):
 
     def __init__(self):
         self._entities_db = {}
@@ -78,6 +83,11 @@ class SaverEntity(Entity):
     @property
     def name(self):
         return DOMAIN
+
+    def clear(self):
+        self._entities_db.clear()
+        self._variables_db.clear()
+        self.schedule_update_ha_state()
 
     def delete(self, entity_id):
         self._entities_db.pop(entity_id)
@@ -118,20 +128,32 @@ class SaverEntity(Entity):
     @property
     def state_attributes(self):
         return {
-            "entities": list(self._entities_db.keys()),
-            "variables": list(self._variables_db.keys())
+            "entities": self._entities_db,
+            "variables": self._variables_db
         }
 
     @property
     def state(self):
         return len(self._entities_db) + len(self._variables_db)
 
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        state = yield from self.async_get_last_state()
+        if state is not None \
+                and state.attributes is not None \
+                and "variables" in state.attributes and not isinstance(state.attributes["entities"], list) \
+                and "entities" in state.attributes and not isinstance(state.attributes["variables"], list):
+            self._variables_db = state.attributes["variables"]
+            self._entities_db = state.attributes["entities"]
+
     @staticmethod
     def convert_to_variables(state, entity_id=None):
         prefix = ""
+        state_val = state["state"] if isinstance(state, dict) else state.state
+        attrs = state["attributes"] if isinstance(state, dict) else state.attributes
         if entity_id is not None:
             prefix = f"{entity_id}_".replace(".", "_")
-        variables = {f"{prefix}state": state.state}
-        for attr in state.attributes:
-            variables[f"{prefix}attr_{attr}"] = state.attributes[attr]
+        variables = {f"{prefix}state": state_val}
+        for attr in attrs:
+            variables[f"{prefix}attr_{attr}"] = attrs[attr]
         return variables

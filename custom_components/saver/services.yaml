@@ -1,3 +1,7 @@
+clear:
+  description: >
+    Deletes all saved data.
+
 delete:
   description: >
     Deletes a saved state for an entity.

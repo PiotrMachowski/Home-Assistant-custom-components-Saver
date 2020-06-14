@@ -33,6 +33,7 @@ saver:
 ## Available services
 
 ### Save state
+Saves the state and parameters of the entity.
 ```yaml
 service: saver.save_state
 data:
@@ -40,6 +41,8 @@ data:
 ```
 
 ### Restore state
+Executes the script using saved state of the entity.
+
 To use state of an entity you have to use a following value in a template: `state`.
 
 To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `attr_current_position`.
@@ -60,6 +63,7 @@ data:
 ```
 
 ### Delete saved state
+Deletes a saved state for an entity.
 ```yaml
 service: saver.delete
 data:
@@ -67,6 +71,7 @@ data:
 ```
 
 ### Set variable
+Sets the value to the variable.
 ```yaml
 service: saver.set_variable
 data:
@@ -74,6 +79,7 @@ data:
 ```
 
 ### Delete variable
+Deletes a saved variable.
 ```yaml
 service: saver.delete_variable
 data:
@@ -81,6 +87,7 @@ data:
 ```
 
 ### Execute script
+Executes a script using all saved entities and variables.
 
 To use state of an entity (in this case `cover.living_room`) you have to use a following value in a template: `cover_living_room_state`.
 
@@ -104,5 +111,10 @@ data:
         value: "Counter has value {{ counter }}"
 ```
 
+### Clear
+Deletes all saved data.
+```yaml
+service: saver.clear
+```
 
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
