@@ -117,4 +117,22 @@ Deletes all saved data.
 service: saver.clear
 ```
 
+## Using in templates
+It is possible to use saved data in templates via `saver.saver` entity:
+```yaml
+script:
+  - service: cover.set_cover_position
+    data_template:
+      entity_id: cover.living_room
+      position: "{{ state_attr('saver.saver', 'entities')['cover.living_room'].attributes.current_position | int }}"
+  - service: input_text.set_value
+    data_template:
+      entity_id: input_text.cover_description
+      value: "Cover is now {{ state_attr('saver.saver', 'entities')['cover.living_room'].state }}"
+  - service: input_text.set_value
+    data_template:
+      entity_id: input_text.counter_description
+      value: "Counter has value {{ state_attr('saver.saver', 'variables')["counter"] }}"
+```
+
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
