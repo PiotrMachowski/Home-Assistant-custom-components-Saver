@@ -76,6 +76,7 @@ Sets the value to the variable.
 service: saver.set_variable
 data:
   name: counter
+  value: 3
 ```
 
 ### Delete variable
