@@ -3,7 +3,7 @@ import asyncio
 
 from homeassistant.core import Context
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.script import Script
+from homeassistant.helpers.script import Script, SCRIPT_MODE_PARALLEL
 from homeassistant.helpers.entity_component import EntityComponent
 
 from .const import *
@@ -98,7 +98,7 @@ class SaverEntity(RestoreEntity):
         self.schedule_update_ha_state()
 
     def execute(self, script):
-        script = Script(self.hass, script)
+        script = Script(self.hass, script, self.name, DOMAIN, script_mode=SCRIPT_MODE_PARALLEL)
         variables = {}
         variables.update(self._variables_db)
         for entity_id in self._entities_db:
@@ -113,7 +113,7 @@ class SaverEntity(RestoreEntity):
         variables = SaverEntity.convert_to_variables(old)
         if delete:
             self._entities_db.pop(entity_id)
-        script = Script(self.hass, restore_script)
+        script = Script(self.hass, restore_script, self.name, DOMAIN, script_mode=SCRIPT_MODE_PARALLEL)
         script.run(variables=variables, context=Context())
         self.schedule_update_ha_state()
 
