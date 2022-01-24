@@ -34,11 +34,22 @@ Additionally you can create simple variables and use their values in scripts.
 
 ## Installation
 
-### HACS
-You can install this custom component using [HACS](https://hacs.xyz/).
+### Using [HACS](https://hacs.xyz/) (recommended)
+
+This integration can be installed using HACS.
+To do it search for `Saver` in *Integrations* section.
 
 ### Manual
-To manually install this custom component you have to copy the contents of `custom_components/saver/` to `<your config dir>/custom_components/saver/`.
+
+To install this integration manually you have to download [*saver.zip*](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver/releases/latest/download/saver.zip) and extract its contents to `config/custom_components/saver` directory:
+```bash
+mkdir -p custom_components/saver
+cd custom_components/saver
+wget https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver/releases/latest/download/saver.zip
+unzip saver.zip
+rm saver.zip
+```
+
 ## Configuration
 
 ### GUI
