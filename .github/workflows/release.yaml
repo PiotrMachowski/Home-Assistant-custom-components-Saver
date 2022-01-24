@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repo
+        uses: actions/checkout@v1
+
+      - name: Zip saver dir
+        run: |
+          cd /home/runner/work/Home-Assistant-custom-components-Saver/Home-Assistant-custom-components-Saver/custom_components/saver
+          zip saver.zip -r ./
+
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /home/runner/work/Home-Assistant-custom-components-Saver/Home-Assistant-custom-components-Saver/custom_components/saver/saver.zip
+          asset_name: saver.zip
+          tag: ${{ github.ref }}
+          overwrite: true
