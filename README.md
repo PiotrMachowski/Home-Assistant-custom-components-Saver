@@ -171,5 +171,22 @@ script:
       value: "Counter has value {{ state_attr('saver.saver', 'variables')["counter"] }}"
 ```
 
+## Events
+
+After the completion of the services mentioned before, the following events are fired:
+
+| **Service Function** | **Event ID** | **Provided Arguments** |
+|---|---|---|
+| **execute** | event_saver_executed | script |
+| **save_state** | event_saver_saved_entity | entity_id |
+| **restore_state** | event_saver_restored | entity_id |
+| **delete** | event_saver_deleted_entity | entity_id |
+| **clear** | event_saver_cleared |  |
+| **set_variable** | event_saver_saved_variable | variable, value |
+| **delete_variable** | event_saver_deleted_variable | variable |
+
+The events can be used to trigger further automations that depend on the completion of the services. The documentation is provided [here](https://www.home-assistant.io/docs/automation/trigger/#event-trigger). 
+
+
 <a href="https://www.buymeacoffee.com/PiotrMachowski" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 <a href="https://paypal.me/PiMachowski" target="_blank"><img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" border="0" alt="PayPal Logo" style="height: auto !important;width: auto !important;"></a>
