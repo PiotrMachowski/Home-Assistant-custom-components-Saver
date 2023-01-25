@@ -85,16 +85,20 @@ class SaverEntity(RestoreEntity):
         return DOMAIN
 
     def clear(self):
-        self._entities_db.clear()
-        self._variables_db.clear()
+        self._entities_db = {}
+        self._variables_db = {}
         self.schedule_update_ha_state()
 
     def delete(self, entity_id):
-        self._entities_db.pop(entity_id)
+        tmp = {**self._entities_db}
+        tmp.pop(entity_id)
+        self._entities_db = tmp
         self.schedule_update_ha_state()
 
     def delete_variable(self, variable):
-        self._variables_db.pop(variable)
+        tmp = {**self._variables_db}
+        tmp.pop(variable)
+        self._variables_db = tmp
         self.schedule_update_ha_state()
 
     def execute(self, script):
@@ -112,17 +116,23 @@ class SaverEntity(RestoreEntity):
         old = self._entities_db[entity_id]
         variables = SaverEntity.convert_to_variables(old)
         if delete:
-            self._entities_db.pop(entity_id)
+            tmp = {**self._entities_db}
+            tmp.pop(entity_id)
+            self._entities_db = tmp
         script = Script(self.hass, restore_script, self.name, DOMAIN, script_mode=SCRIPT_MODE_PARALLEL)
         script.run(variables=variables, context=Context())
         self.schedule_update_ha_state()
 
     def save(self, entity_id):
-        self._entities_db[entity_id] = self.hass.states.get(entity_id)
+        tmp = {**self._entities_db}
+        tmp[entity_id] = self.hass.states.get(entity_id)
+        self._entities_db = tmp
         self.schedule_update_ha_state()
 
     def set_variable(self, variable, value):
-        self._variables_db[variable] = value
+        tmp = {**self._variables_db}
+        tmp[variable] = value
+        self._variables_db = tmp
         self.schedule_update_ha_state()
 
     @property

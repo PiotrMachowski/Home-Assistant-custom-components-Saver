@@ -7,6 +7,6 @@
   "codeowners": ["@PiotrMachowski"],
   "requirements": [],
   "config_flow": true,
-  "version": "v1.1.3",
+  "version": "v1.1.4",
   "iot_class": "calculated"
 }
