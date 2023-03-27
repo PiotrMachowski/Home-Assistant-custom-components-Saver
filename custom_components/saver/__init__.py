@@ -29,21 +29,25 @@ def setup_entry(hass, config_entry):
 
     def clear(call):
         saver_entity.clear()
+        hass.bus.fire('event_saver_cleared')
 
     def delete(call):
         data = call.data
         entity_id = data[CONF_ENTITY_ID]
         saver_entity.delete(entity_id)
+        hass.bus.fire('event_saver_deleted_entity', {'entity_id': entity_id})
 
     def delete_variable(call):
         data = call.data
         variable = data[CONF_NAME]
         saver_entity.delete_variable(variable)
+        hass.bus.fire('event_saver_deleted_variable', {'variable': variable})
 
     def execute(call):
         data = call.data
         script = data[CONF_SCRIPT]
         saver_entity.execute(script)
+        hass.bus.fire('event_saver_executed', {'script': script})
 
     def restore_state(call):
         data = call.data
@@ -51,17 +55,20 @@ def setup_entry(hass, config_entry):
         restore_script = data[CONF_RESTORE_SCRIPT]
         should_delete = data[CONF_DELETE_AFTER_RUN]
         saver_entity.restore(entity_id, restore_script, should_delete)
+        hass.bus.fire('event_saver_restored', {'entity_id': entity_id})
 
     def save_state(call):
         data = call.data
         entity_id = data[CONF_ENTITY_ID]
         saver_entity.save(entity_id)
+        hass.bus.fire('event_saver_saved_entity', {'entity_id': entity_id})
 
     def set_variable(call):
         data = call.data
         name = data[CONF_NAME]
         value = data[CONF_VALUE]
         saver_entity.set_variable(name, value)
+        hass.bus.fire('event_saver_saved_variable', {'variable': name, 'value': value})
 
     hass.services.register(DOMAIN, SERVICE_CLEAR, clear, SERVICE_CLEAR_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE, delete, SERVICE_DELETE_SCHEMA)

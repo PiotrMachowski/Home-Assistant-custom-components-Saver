@@ -178,6 +178,23 @@ script:
       value: "Counter has value {{ state_attr('saver.saver', 'variables')['counter'] }}"
 ```
 
+## Events
+
+After the completion of the services mentioned before, the following events are fired:
+
+| **Service Function** | **Event ID** | **Provided Arguments** |
+|---|---|---|
+| **execute** | event_saver_executed | script |
+| **save_state** | event_saver_saved_entity | entity_id |
+| **restore_state** | event_saver_restored | entity_id |
+| **delete** | event_saver_deleted_entity | entity_id |
+| **clear** | event_saver_cleared |  |
+| **set_variable** | event_saver_saved_variable | variable, value |
+| **delete_variable** | event_saver_deleted_variable | variable |
+
+The events can be used to trigger further automations that depend on the completion of the services. The documentation is provided [here](https://www.home-assistant.io/docs/automation/trigger/#event-trigger). 
+
+
 <a href='https://ko-fi.com/piotrmachowski' target='_blank'><img height='35px' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' />
 <a href="https://buycoffee.to/piotrmachowski" target="_blank"><img src="https://buycoffee.to/btn/buycoffeeto-btn-primary.svg" height="35px" alt="Postaw mi kawę na buycoffee.to"></a>
 <a href="https://paypal.me/PiMachowski" target="_blank"><img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" border="0" alt="PayPal Logo" height="35px" style="height: auto !important;width: auto !important;"></a>
