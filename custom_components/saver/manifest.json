@@ -1,12 +1,12 @@
 {
   "domain": "saver",
   "name": "Saver",
-  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver",
-  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver/issues",
-  "dependencies": [],
   "codeowners": ["@PiotrMachowski"],
-  "requirements": [],
   "config_flow": true,
-  "version": "v1.1.4",
-  "iot_class": "calculated"
+  "dependencies": [],
+  "documentation": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver/issues",
+  "requirements": [],
+  "version": "v1.1.5"
 }
