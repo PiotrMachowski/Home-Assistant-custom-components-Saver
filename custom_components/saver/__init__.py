@@ -1,5 +1,4 @@
 import logging
-import asyncio
 
 from homeassistant.core import Context
 from homeassistant.helpers.restore_state import RestoreEntity
