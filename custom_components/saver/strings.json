@@ -5,10 +5,8 @@
         },
         "step": {
             "user": {
-                "description": "Do you want to configure the Saver?",
-                "title": "Saver"
+                "description": "Do you want to configure the Saver?"
             }
-        },
-        "title": "Saver"
+        }
     }
 }
