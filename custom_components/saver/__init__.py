@@ -72,7 +72,7 @@ def setup_templates(hass: HomeAssistant) -> None:
     def is_safe_callable(self: TemplateEnvironment, obj) -> bool:
         # noinspection PyUnresolvedReferences
         return (isinstance(obj, (SaverVariableTemplate, SaverEntityTemplate))
-                or self.saver_original_is_safe_callable_old(obj))
+                or self.saver_original_is_safe_callable(obj))
 
     def patch_environment(env: TemplateEnvironment) -> None:
         env.globals["saver_variable"] = SaverVariableTemplate(hass, f"{DOMAIN}.{DOMAIN}")
@@ -89,10 +89,13 @@ def setup_templates(hass: HomeAssistant) -> None:
         self.saver_original__init__(hass_param, limited, strict, log_fn)
         patch_environment(self)
 
-    TemplateEnvironment.saver_original__init__ = TemplateEnvironment.__init__
-    TemplateEnvironment.__init__ = patched_init
-    TemplateEnvironment.saver_original_is_safe_callable_old = TemplateEnvironment.is_safe_callable
-    TemplateEnvironment.is_safe_callable = is_safe_callable
+    if not hasattr(TemplateEnvironment, 'saver_original__init__'):
+        TemplateEnvironment.saver_original__init__ = TemplateEnvironment.__init__
+        TemplateEnvironment.__init__ = patched_init
+
+    if not hasattr(TemplateEnvironment, 'saver_original_is_safe_callable'):
+        TemplateEnvironment.saver_original_is_safe_callable = TemplateEnvironment.is_safe_callable
+        TemplateEnvironment.is_safe_callable = is_safe_callable
 
     tpl = Template("", hass)
     tpl._strict = False
