@@ -1,58 +1,98 @@
 clear:
+  name: Clear storage
   description: >
     Deletes all saved data.
 
 delete:
+  name: Delete entity
   description: >
     Deletes a saved state for an entity.
   fields:
     entity_id:
+      name: Entity
       description: ID of entity to delete from saver.
-      example: light.patio
+      example: sun.sun
+      required: true
+      selector:
+        entity:
+          multiple: true
 
 delete_variable:
+  name: Delete variable
   description: >
     Deletes a saved variable.
   fields:
     name:
+      name: Variable
       description: Name of the variable to delete from saver.
       example: counter
+      required: true
+      selector:
+        text:
 
 execute:
+  name: Execute
   description: >
-    Executes a script using all saved entities and variables.
+    (Deprecated) Executes a script using all saved entities and variables.
   fields:
     script:
-      description: The script to excute using saved data.
+      name: Script
+      description: The script to execute using saved data.
+      required: true
 
 set_variable:
+  name: Set variable
   description: >
     Sets the value to the variable.
   fields:
     name:
+      name: Variable
       description: Name of the variable to save.
       example: counter
+      required: true
+      selector:
+        text:
     value:
+      name: Value
       description: The new value
       example: 3
+      required: true
+      selector:
+        text:
 
 save_state:
+  name: Save state
   description: >
     Saves the state and parameters of the entity.
   fields:
     entity_id:
+      name: Entity
       description: ID of the entity that should be saved.
-      example: light.patio
+      example: sun.sun
+      required: true
+      selector:
+        entity:
+          multiple: true
 
 restore_state:
+  name: Restore state
   description: >
-    Executes the script using saved state of the entity.
+    (Deprecated) Executes the script using saved state of the entity.
   fields:
     entity_id:
+      name: Entity
       description: ID of the entity to restore.
-      example: light.patio
+      example: sun.sun
+      required: true
+      selector:
+        entity:
     restore_script:
+      name: Restore script
       description: Script used to restore values.
+      required: true
     delete_after_run:
+      name: Delete after run
       description: "Deletes the saved state after an execution of the script. Default: true [Optional]"
       example: false
+      selector:
+        boolean:
