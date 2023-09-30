@@ -1,9 +1,11 @@
 import logging
+from typing import Any, Callable
 
-from homeassistant.core import Context
+from homeassistant.core import Context, HomeAssistant
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.script import Script, SCRIPT_MODE_PARALLEL
 from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers.template import _get_state_if_valid, Template, TemplateEnvironment
 
 from .const import *
 
@@ -21,10 +23,89 @@ async def async_setup_entry(hass, config_entry):
     return result
 
 
+class SaverVariableTemplate:
+    def __init__(self, hass: HomeAssistant, entity_id: str) -> None:
+        self._hass = hass
+        self._entity_id = entity_id
+
+    def __call__(self, variable: str) -> Any:
+        saver_state = _get_state_if_valid(self._hass, self._entity_id)
+        if saver_state is None:
+            return None
+        variables = saver_state.attributes["variables"]
+        if variable in variables:
+            return variables[variable]
+        return None
+
+    def __repr__(self):
+        return "<template SaverVariable>"
+
+
+class SaverEntityTemplate:
+    def __init__(self, hass: HomeAssistant, entity_id: str) -> None:
+        self._hass = hass
+        self._entity_id = entity_id
+
+    def __call__(self, entity_id: str, attribute: str | None = None) -> Any:
+        saver_state = _get_state_if_valid(self._hass, self._entity_id)
+        if saver_state is None:
+            return None
+        entities = saver_state.attributes["entities"]
+        if entity_id not in entities:
+            return None
+        state = entities[entity_id]
+        state_val = state["state"] if isinstance(state, dict) else state.state
+        attrs = state["attributes"] if isinstance(state, dict) else state.attributes
+        if attribute is None:
+            return state_val
+        if attribute not in attrs:
+            return None
+        return attrs[attribute]
+
+    def __repr__(self):
+        return "<template SaverEntityTemplate>"
+
+
+def setup_templates(hass: HomeAssistant):
+    def is_safe_callable(self: TemplateEnvironment, obj):
+        # noinspection PyUnresolvedReferences
+        return (isinstance(obj, (SaverVariableTemplate, SaverEntityTemplate))
+                or self.saver_original_is_safe_callable_old(obj))
+
+    def patch_environment(env: TemplateEnvironment):
+        env.globals["saver_variable"] = SaverVariableTemplate(hass, f"{DOMAIN}.{DOMAIN}")
+        env.globals["saver_entity"] = SaverEntityTemplate(hass, f"{DOMAIN}.{DOMAIN}")
+
+    def patched_init(
+        self: TemplateEnvironment,
+        hass_param: HomeAssistant | None,
+        limited: bool | None = False,
+        strict: bool | None = False,
+        log_fn: Callable[[int, str], None] | None = None,
+    ):
+        # noinspection PyUnresolvedReferences
+        self.saver_original__init__(hass_param, limited, strict, log_fn)
+        patch_environment(self)
+
+    TemplateEnvironment.saver_original__init__ = TemplateEnvironment.__init__
+    TemplateEnvironment.__init__ = patched_init
+    TemplateEnvironment.saver_original_is_safe_callable_old = TemplateEnvironment.is_safe_callable
+    TemplateEnvironment.is_safe_callable = is_safe_callable
+
+    tpl = Template("", hass)
+    tpl._strict = False
+    tpl._limited = False
+    patch_environment(tpl._env)
+    tpl._strict = True
+    tpl._limited = False
+    patch_environment(tpl._env)
+
+
 def setup_entry(hass, config_entry):
     component = EntityComponent(_LOGGER, DOMAIN, hass)
     saver_entity = SaverEntity()
     component.add_entities([saver_entity])
+    setup_templates(hass)
 
     def clear(call):
         saver_entity.clear()
@@ -130,15 +211,11 @@ class SaverEntity(RestoreEntity):
         self.schedule_update_ha_state()
 
     def save(self, entity_id):
-        tmp = {**self._entities_db}
-        tmp[entity_id] = self.hass.states.get(entity_id)
-        self._entities_db = tmp
+        self._entities_db = {**self._entities_db, entity_id: self.hass.states.get(entity_id)}
         self.schedule_update_ha_state()
 
     def set_variable(self, variable, value):
-        tmp = {**self._variables_db}
-        tmp[variable] = value
-        self._variables_db = tmp
+        self._variables_db = {**self._variables_db, variable: value}
         self.schedule_update_ha_state()
 
     @property
@@ -154,10 +231,12 @@ class SaverEntity(RestoreEntity):
 
     async def async_added_to_hass(self):
         state = await self.async_get_last_state()
-        if state is not None \
-                and state.attributes is not None \
-                and "variables" in state.attributes and not isinstance(state.attributes["entities"], list) \
-                and "entities" in state.attributes and not isinstance(state.attributes["variables"], list):
+        if (
+            state is not None
+            and state.attributes is not None
+            and "variables" in state.attributes and not isinstance(state.attributes["entities"], list)
+            and "entities" in state.attributes and not isinstance(state.attributes["variables"], list)
+        ):
             self._variables_db = state.attributes["variables"]
             self._entities_db = state.attributes["entities"]
 

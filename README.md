@@ -22,17 +22,17 @@
 [community_forum]: https://community.home-assistant.io/t/custom-component-saver/204249
 
 
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=saver)
-
 # Saver
 
 This custom component allows you to save current state of any entity and use its data later to restore it.
 
-Additionally you can create simple variables and use their values in scripts.
+Additionally, you can create simple variables and use their values in scripts.
 
 ## Installation
 
 ### Using [HACS](https://hacs.xyz/) (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PiotrMachowski&repository=Home-Assistant-custom-components-Saver&category=Integration)
 
 This integration can be installed using HACS.
 To do it search for `Saver` in *Integrations* section.
@@ -50,15 +50,19 @@ rm saver.zip
 
 ## Configuration
 
-### GUI
+### Using UI
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=saver)
+
 From the Home Assistant front page go to **Configuration** and then select **Integrations** from the list.
 
-Use the plus button in the bottom right to add a new integration called **Saver**.
+Use the "plus" button in the bottom right to add a new integration called **Saver**.
 
 The success dialog will appear or an error will be displayed in the popup.
 
 ### YAML
-In configuration.yaml:
+
+Add following code in configuration.yaml:
 ```yaml
 saver:
 ```
@@ -71,28 +75,6 @@ Saves the state and parameters of the entity.
 service: saver.save_state
 data:
   entity_id: cover.living_room
-```
-
-### Restore state
-Executes the script using saved state of the entity.
-
-To use state of an entity you have to use a following value in a template: `state`.
-
-To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `attr_current_position`.
-
-```yaml
-service: saver.restore_state
-data:
-  entity_id: cover.living_room
-  restore_script:
-    - service: cover.set_cover_position
-      data_template:
-        entity_id: cover.living_room
-        position: "{{ '{{ attr_current_position | int }}' }}"
-    - service: input_text.set_value
-      data_template:
-        entity_id: input_text.cover_description
-        value: "Cover is now {{ '{{ state }}' }}"
 ```
 
 ### Delete saved state
@@ -120,7 +102,41 @@ data:
   name: counter
 ```
 
-### Execute script
+### Clear
+Deletes all saved data.
+```yaml
+service: saver.clear
+```
+
+### Deprecated services
+
+<details>
+<summary>Show</summary>
+
+
+#### Restore state
+Executes the script using saved state of the entity.
+
+To use state of an entity you have to use a following value in a template: `state`.
+
+To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `attr_current_position`.
+
+```yaml
+service: saver.restore_state
+data:
+  entity_id: cover.living_room
+  restore_script:
+    - service: cover.set_cover_position
+      data_template:
+        entity_id: cover.living_room
+        position: "{{ '{{ attr_current_position | int }}' }}"
+    - service: input_text.set_value
+      data_template:
+        entity_id: input_text.cover_description
+        value: "Cover is now {{ '{{ state }}' }}"
+```
+
+#### Execute script
 Executes a script using all saved entities and variables.
 
 To use state of an entity (in this case `cover.living_room`) you have to use a following value in a template: `cover_living_room_state`.
@@ -145,28 +161,16 @@ data:
         value: "Counter has value {{ '{{ counter }}' }}"
 ```
 
-### Clear
-Deletes all saved data.
-```yaml
-service: saver.clear
-```
 
-## Using in templates
-It is possible to use saved data in templates via `saver.saver` entity:
+</details>
+
+
+## Using saved values in templates
+It is possible to use saved data in templates using `saver_entity` and `saver_variable` functions:
 ```yaml
-script:
-  - service: cover.set_cover_position
-    data_template:
-      entity_id: cover.living_room
-      position: "{{ state_attr('saver.saver', 'entities')['cover.living_room'].attributes.current_position | int }}"
-  - service: input_text.set_value
-    data_template:
-      entity_id: input_text.cover_description
-      value: "Cover is now {{ state_attr('saver.saver', 'entities')['cover.living_room'].state }}"
-  - service: input_text.set_value
-    data_template:
-      entity_id: input_text.counter_description
-      value: "Counter has value {{ state_attr('saver.saver', 'variables')['counter'] }}"
+{{ saver_entity("sun.sun") }}  # returns saved state of "sun.sun" entity
+{{ saver_entity("sun.sun", "azimuth") }}  # returns "azimuth" attribute of saved "sun.sun" entity
+{{ saver_variable("counter") }}  # returns saved variable "counter"
 ```
 
 ## Events
