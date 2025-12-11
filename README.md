@@ -140,49 +140,6 @@ Deletes all saved data.
 service: saver.clear
 ```
 
-### Deprecated services
-
-<details>
-<summary>Show</summary>
-
-
-#### Restore state
-Executes the script using saved state of the entity.
-
-```yaml
-service: saver.restore_state
-data:
-  entity_id: cover.living_room
-```
-
-#### Execute script
-Executes a script using all saved entities and variables.
-
-To use state of an entity (in this case `cover.living_room`) you have to use a following value in a template: `cover_living_room_state`.
-
-To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `cover_living_room_attr_current_position`.
-
-```yaml
-service: saver.execute
-data:
-  script:
-    - service: cover.set_cover_position
-      data_template:
-        entity_id: cover.living_room
-        position: "{{ '{{ cover_living_room_attr_current_position | int }}' }}"
-    - service: input_text.set_value
-      data_template:
-        entity_id: input_text.cover_description
-        value: "Cover is now {{ '{{ cover_living_room_state }}' }}"
-    - service: input_text.set_value
-      data_template:
-        entity_id: input_text.counter_description
-        value: "Counter has value {{ '{{ counter }}' }}"
-```
-
-
-</details>
-
 
 ## Using saved values in templates
 It is possible to use saved data in templates using `saver_entity` and `saver_variable` functions:
