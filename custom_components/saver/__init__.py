@@ -1,10 +1,11 @@
+import json
 import logging
-from typing import Any, Callable, Sequence
+import regex
+from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Context, HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.script import Script, SCRIPT_MODE_PARALLEL
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.template import _get_state_if_valid, Template, TemplateEnvironment
 
@@ -128,18 +129,18 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
         saver_entity.delete_variable(variable)
         hass.bus.fire('event_saver_deleted_variable', {'variable': variable})
 
-    def execute(call: ServiceCall) -> None:
+    def delete_variable_regex(call: ServiceCall) -> None:
         data = call.data
-        script = data[CONF_SCRIPT]
-        saver_entity.execute(script)
-        hass.bus.fire('event_saver_executed', {'script': script})
+        variable_regex = data[CONF_REGEX]
+        variables = saver_entity.delete_variable_regex(variable_regex)
+        hass.bus.fire('event_saver_deleted_variable_by_regex', {'regex': variable_regex, 'variables': variables})
 
     def restore_state(call: ServiceCall) -> None:
         data = call.data
         entity_id = data[CONF_ENTITY_ID]
-        restore_script = data[CONF_RESTORE_SCRIPT]
         should_delete = data[CONF_DELETE_AFTER_RUN]
-        saver_entity.restore(entity_id, restore_script, should_delete)
+        transition = data.get(ATTR_TRANSITION, None)
+        saver_entity.restore(entity_id, should_delete, transition)
         hass.bus.fire('event_saver_restored', {'entity_id': entity_id})
 
     def save_state(call: ServiceCall) -> None:
@@ -158,7 +159,7 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     hass.services.register(DOMAIN, SERVICE_CLEAR, clear, SERVICE_CLEAR_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE, delete, SERVICE_DELETE_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE_VARIABLE, delete_variable, SERVICE_DELETE_VARIABLE_SCHEMA)
-    hass.services.register(DOMAIN, SERVICE_EXECUTE, execute, SERVICE_EXECUTE_SCHEMA)
+    hass.services.register(DOMAIN, SERVICE_DELETE_VARIABLE_REGEX, delete_variable_regex, SERVICE_DELETE_VARIABLE_REGEX_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_RESTORE_STATE, restore_state, SERVICE_RESTORE_STATE_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_SAVE_STATE, save_state, SERVICE_SAVE_STATE_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_SET_VARIABLE, set_variable, SERVICE_SET_VARIABLE_SCHEMA)
@@ -171,10 +172,11 @@ class SaverEntity(RestoreEntity):
     def __init__(self) -> None:
         self._entities_db = {}
         self._variables_db = {}
+        self._attr_unique_id = f"{DOMAIN}.{DOMAIN}"
 
     @property
     def name(self) -> str:
-        return DOMAIN
+        return NAME
 
     def clear(self) -> None:
         self._entities_db = {}
@@ -194,27 +196,32 @@ class SaverEntity(RestoreEntity):
         self._variables_db = tmp
         self.schedule_update_ha_state()
 
-    def execute(self, script: Sequence[dict[str, Any]]) -> None:
-        script = Script(self.hass, script, self.name, DOMAIN, script_mode=SCRIPT_MODE_PARALLEL)
-        variables = {}
-        variables.update(self._variables_db)
-        for entity_id in self._entities_db:
-            variables.update(SaverEntity.convert_to_variables(self._entities_db[entity_id], entity_id))
-        script.run(variables=variables, context=Context())
+    def delete_variable_regex(self, variable_regex: str) -> list[str]:
+        variables = [variable for variable in self._variables_db if regex.match(variable_regex, variable)]
+        tmp = {**self._variables_db}
+        for variable in variables:
+            tmp.pop(variable)
+        self._variables_db = tmp
         self.schedule_update_ha_state()
+        return variables
 
-    def restore(self, entity_id: str, restore_script: Sequence[dict[str, Any]], delete: bool) -> None:
-        if entity_id not in self._entities_db:
-            return
-        old = self._entities_db[entity_id]
-        variables = SaverEntity.convert_to_variables(old)
+    def restore(self, entity_ids: list[str], delete: bool, transition: float | None) -> None:
+        entity_ids = [entity_id for entity_id in entity_ids if entity_id in self._entities_db]
+        entities_data = {
+            entity_id: self.convert_to_scene_params(
+                self._entities_db[entity_id]
+            )
+            for entity_id in self._entities_db
+        }
         if delete:
             tmp = {**self._entities_db}
-            tmp.pop(entity_id)
+            for entity_id in entity_ids:
+                tmp.pop(entity_id)
             self._entities_db = tmp
-        script = Script(self.hass, restore_script, self.name, DOMAIN, script_mode=SCRIPT_MODE_PARALLEL)
-        script.run(variables=variables, context=Context())
-        self.schedule_update_ha_state()
+        data: dict[str, Any] = { "entities": entities_data }
+        if transition is not None:
+            data["transition"] = transition
+        self.hass.services.call("scene", "apply", data)
 
     def save(self, entity_ids: list[str]) -> None:
         self._entities_db = {**self._entities_db}
@@ -249,13 +256,10 @@ class SaverEntity(RestoreEntity):
             self._entities_db = state.attributes["entities"]
 
     @staticmethod
-    def convert_to_variables(state: Any, entity_id: str | None = None) -> dict:
-        prefix = ""
-        state_val = state["state"] if isinstance(state, dict) else state.state
-        attrs = state["attributes"] if isinstance(state, dict) else state.attributes
-        if entity_id is not None:
-            prefix = f"{entity_id}_".replace(".", "_")
-        variables = {f"{prefix}state": state_val}
-        for attr in attrs:
-            variables[f"{prefix}attr_{attr}"] = attrs[attr]
-        return variables
+    def convert_to_scene_params(saved_state: Any) -> dict[str, Any]:
+        state = saved_state["state"] if isinstance(saved_state, dict) else saved_state.state
+        attrs = saved_state["attributes"] if isinstance(saved_state, dict) else saved_state.attributes
+        return {
+            "state": state,
+            **{attr_key: json.loads(json.dumps(attr_val)) for attr_key, attr_val in attrs.items()},
+        }

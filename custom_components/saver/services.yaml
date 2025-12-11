@@ -30,15 +30,18 @@ delete_variable:
       selector:
         text:
 
-execute:
-  name: Execute
+delete_variable_regex:
+  name: Delete variables by regex
   description: >
-    (Deprecated) Executes a script using all saved entities and variables.
+    Deletes saved variables by regex.
   fields:
-    script:
-      name: Script
-      description: The script to execute using saved data.
+    regex:
+      name: Regex
+      description: Regex that should be used to delete variables from saver.
+      example: counter_.*
       required: true
+      selector:
+        text:
 
 set_variable:
   name: Set variable
@@ -47,7 +50,7 @@ set_variable:
   fields:
     name:
       name: Variable
-      description: Name of the variable to save.
+      description: Name of the variable to be set.
       example: counter
       required: true
       selector:
@@ -75,24 +78,30 @@ save_state:
           multiple: true
 
 restore_state:
-  name: Restore state
+  name: Restore states
   description: >
-    (Deprecated) Executes the script using saved state of the entity.
+    Restores saved states of entities.
   fields:
     entity_id:
       name: Entity
-      description: ID of the entity to restore.
+      description: ID of the entity that should be saved.
       example: sun.sun
       required: true
       selector:
         entity:
-    restore_script:
-      name: Restore script
-      description: Script used to restore values.
-      required: true
+          multiple: true
     delete_after_run:
       name: Delete after run
       description: "Deletes the saved state after an execution of the script. Default: true [Optional]"
       example: false
       selector:
         boolean:
+    transition:
+      name: Transition
+      description: "Transition that should be used during state restoring (only for light entities)"
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: seconds
