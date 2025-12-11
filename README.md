@@ -1,6 +1,7 @@
 [![HACS Default][hacs_shield]][hacs]
 [![GitHub Latest Release][releases_shield]][latest_release]
 [![GitHub All Releases][downloads_total_shield]][releases]
+[![Installations][installations_shield]][releases]
 [![Community Forum][community_forum_shield]][community_forum]<!-- piotrmachowski_support_badges_start -->
 [![Ko-Fi][ko_fi_shield]][ko_fi]
 [![buycoffee.to][buycoffee_to_shield]][buycoffee_to]
@@ -17,6 +18,8 @@
 
 [releases]: https://github.com/PiotrMachowski/Home-Assistant-custom-components-Saver/releases
 [downloads_total_shield]: https://img.shields.io/github/downloads/PiotrMachowski/Home-Assistant-custom-components-Saver/total
+
+[installations_shield]: https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fanalytics.home-assistant.io%2Fcustom_integrations.json&query=%24.saver.total&style=popout&color=41bdf5&label=analytics
 
 [community_forum_shield]: https://img.shields.io/static/v1.svg?label=%20&message=Forum&style=popout&color=41bdf5&logo=HomeAssistant&logoColor=white
 [community_forum]: https://community.home-assistant.io/t/custom-component-saver/204249
@@ -60,7 +63,7 @@ Use the "plus" button in the bottom right to add a new integration called **Save
 
 The success dialog will appear or an error will be displayed in the popup.
 
-### YAML
+### YAML (Deprecated)
 
 Add following code in configuration.yaml:
 ```yaml
@@ -70,11 +73,32 @@ saver:
 ## Available services
 
 ### Save state
-Saves the state and parameters of the entity.
+Saves the state and parameters of the entity. Supports saving multiple entities.
 ```yaml
 service: saver.save_state
 data:
   entity_id: cover.living_room
+```
+
+### Restore state
+Restores saved states (only for entities that support it). Supports restoring multiple entities.
+```yaml
+service: saver.restore_state
+data:
+  entity_id: cover.living_room
+```
+
+Optional attributes: 
+  - `delete_after_run`: allows to disable removing saved states after restoring them (default: `true`).
+  - `transition`: Number that represents the time (in seconds) the light should take to transition to the new state.
+```yaml
+service: saver.restore_state
+data:
+  entity_id: 
+    - cover.living_room
+    - light.living_room
+  delete_after_run: false
+  transition: 3
 ```
 
 ### Delete saved state
@@ -102,6 +126,14 @@ data:
   name: counter
 ```
 
+### Delete variables by regex
+Deletes saved variables that match provided regex.
+```yaml
+service: saver.delete_variable_regex
+data:
+  regex: "counter_\\d+"
+```
+
 ### Clear
 Deletes all saved data.
 ```yaml
@@ -117,23 +149,10 @@ service: saver.clear
 #### Restore state
 Executes the script using saved state of the entity.
 
-To use state of an entity you have to use a following value in a template: `state`.
-
-To use state attribute (in this case `current_position`) of an entity you have to use a following value in a template: `attr_current_position`.
-
 ```yaml
 service: saver.restore_state
 data:
   entity_id: cover.living_room
-  restore_script:
-    - service: cover.set_cover_position
-      data_template:
-        entity_id: cover.living_room
-        position: "{{ '{{ attr_current_position | int }}' }}"
-    - service: input_text.set_value
-      data_template:
-        entity_id: input_text.cover_description
-        value: "Cover is now {{ '{{ state }}' }}"
 ```
 
 #### Execute script
@@ -177,15 +196,15 @@ It is possible to use saved data in templates using `saver_entity` and `saver_va
 
 After the completion of the services mentioned before, the following events are fired:
 
-| **Service Function** | **Event ID**                 | **Provided Arguments** |
-|----------------------|------------------------------|------------------------|
-| **execute**          | event_saver_executed         | script                 |
-| **save_state**       | event_saver_saved_entity     | entity_id              |
-| **restore_state**    | event_saver_restored         | entity_id              |
-| **delete**           | event_saver_deleted_entity   | entity_id              |
-| **clear**            | event_saver_cleared          |                        |
-| **set_variable**     | event_saver_saved_variable   | variable, value        |
-| **delete_variable**  | event_saver_deleted_variable | variable               |
+| **Service Function**      | **Event ID**                          | **Provided Arguments** |
+|---------------------------|---------------------------------------|------------------------|
+| **save_state**            | event_saver_saved_entity              | entity_id              |
+| **restore_state**         | event_saver_restored                  | entity_id              |
+| **delete**                | event_saver_deleted_entity            | entity_id              |
+| **clear**                 | event_saver_cleared                   |                        |
+| **set_variable**          | event_saver_saved_variable            | variable, value        |
+| **delete_variable**       | event_saver_deleted_variable          | variable               |
+| **delete_variable_regex** | event_saver_deleted_variable_by_regex | variables, regex       |
 
 The events can be used to trigger further automations that depend on the completion of the services. The documentation is provided [here](https://www.home-assistant.io/docs/automation/trigger/#event-trigger). 
 
