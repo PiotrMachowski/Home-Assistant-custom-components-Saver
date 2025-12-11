@@ -171,6 +171,7 @@ class SaverEntity(RestoreEntity):
     def __init__(self) -> None:
         self._entities_db = {}
         self._variables_db = {}
+        self._attr_unique_id = "saver.saver"
 
     @property
     def name(self) -> str:
