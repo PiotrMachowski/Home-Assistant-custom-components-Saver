@@ -17,6 +17,19 @@ delete:
         entity:
           multiple: true
 
+delete_regex:
+  name: Delete entities by regex
+  description: >
+    Deletes a saved state for all entities that match provided regex.
+  fields:
+    entity_id_regex:
+      name: Regex
+      description: Regex that should be used to delete entities from saver.
+      example: light.living_room.*
+      required: true
+      selector:
+        text:
+
 delete_variable:
   name: Delete variable
   description: >

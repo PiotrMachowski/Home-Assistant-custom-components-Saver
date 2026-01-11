@@ -123,6 +123,12 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
         saver_entity.delete(entity_id)
         hass.bus.fire('event_saver_deleted_entity', {'entity_id': entity_id})
 
+    def delete_regex(call: ServiceCall) -> None:
+        data = call.data
+        entity_id_regex = data[CONF_ENTITY_ID_REGEX]
+        entities = saver_entity.delete_regex(entity_id_regex)
+        hass.bus.fire('event_saver_deleted_entity_by_regex', {'entity_id_regex': entity_id_regex, 'entities': entities})
+
     def delete_variable(call: ServiceCall) -> None:
         data = call.data
         variable = data[CONF_NAME]
@@ -158,6 +164,7 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
 
     hass.services.register(DOMAIN, SERVICE_CLEAR, clear, SERVICE_CLEAR_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE, delete, SERVICE_DELETE_SCHEMA)
+    hass.services.register(DOMAIN, SERVICE_DELETE_REGEX, delete_regex, SERVICE_DELETE_REGEX_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE_VARIABLE, delete_variable, SERVICE_DELETE_VARIABLE_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_DELETE_VARIABLE_REGEX, delete_variable_regex, SERVICE_DELETE_VARIABLE_REGEX_SCHEMA)
     hass.services.register(DOMAIN, SERVICE_RESTORE_STATE, restore_state, SERVICE_RESTORE_STATE_SCHEMA)
@@ -186,24 +193,31 @@ class SaverEntity(RestoreEntity):
     def delete(self, entity_ids: list[str]) -> None:
         tmp = {**self._entities_db}
         for entity_id in entity_ids:
-            tmp.pop(entity_id)
+            if entity_id in tmp:
+                tmp.pop(entity_id)
         self._entities_db = tmp
         self.schedule_update_ha_state()
 
+    def delete_regex(self, entity_id_regex: str) -> list[str]:
+        entity_ids = [variable for variable in self._entities_db if regex.match(entity_id_regex, variable)]
+        self.delete(entity_ids)
+        return entity_ids
+
     def delete_variable(self, variable: str) -> None:
-        tmp = {**self._variables_db}
-        tmp.pop(variable)
-        self._variables_db = tmp
-        self.schedule_update_ha_state()
+        self._delete_variables([variable])
 
     def delete_variable_regex(self, variable_regex: str) -> list[str]:
         variables = [variable for variable in self._variables_db if regex.match(variable_regex, variable)]
+        self._delete_variables(variables)
+        return variables
+
+    def _delete_variables(self, variables: list[str]) -> None:
         tmp = {**self._variables_db}
         for variable in variables:
-            tmp.pop(variable)
+            if variable in tmp:
+                tmp.pop(variable)
         self._variables_db = tmp
         self.schedule_update_ha_state()
-        return variables
 
     def restore(self, entity_ids: list[str], delete: bool, transition: float | None) -> None:
         entity_ids = [entity_id for entity_id in entity_ids if entity_id in self._entities_db]
