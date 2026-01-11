@@ -211,7 +211,7 @@ class SaverEntity(RestoreEntity):
             entity_id: self.convert_to_scene_params(
                 self._entities_db[entity_id]
             )
-            for entity_id in self._entities_db
+            for entity_id in entity_ids
         }
         if delete:
             tmp = {**self._entities_db}
