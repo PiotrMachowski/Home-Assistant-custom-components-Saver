@@ -19,6 +19,7 @@ CONF_RESTORE_SCRIPT = 'restore_script'
 CONF_SCRIPT = 'script'
 CONF_VALUE = 'value'
 CONF_REGEX = 'regex'
+CONF_ENTITY_ID_REGEX = CONF_ENTITY_ID + '_regex'
 
 SERVICE_CLEAR = 'clear'
 SERVICE_CLEAR_SCHEMA = vol.Schema({
@@ -29,6 +30,11 @@ SERVICE_DELETE_SCHEMA = vol.Schema({
     vol.Required(CONF_ENTITY_ID): cv.entity_ids
 })
 
+SERVICE_DELETE_REGEX = 'delete_regex'
+SERVICE_DELETE_REGEX_SCHEMA = vol.Schema({
+    vol.Required(CONF_ENTITY_ID_REGEX): cv.string
+})
+
 SERVICE_DELETE_VARIABLE = 'delete_variable'
 SERVICE_DELETE_VARIABLE_SCHEMA = vol.Schema({
     vol.Required(CONF_NAME): cv.string
@@ -37,11 +43,6 @@ SERVICE_DELETE_VARIABLE_SCHEMA = vol.Schema({
 SERVICE_DELETE_VARIABLE_REGEX = 'delete_variable_regex'
 SERVICE_DELETE_VARIABLE_REGEX_SCHEMA = vol.Schema({
     vol.Required(CONF_REGEX): cv.string
-})
-
-SERVICE_EXECUTE = 'execute'
-SERVICE_EXECUTE_SCHEMA = vol.Schema({
-    vol.Required(CONF_SCRIPT): cv.SCRIPT_SCHEMA
 })
 
 SERVICE_RESTORE_STATE = 'restore_state'

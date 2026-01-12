@@ -109,6 +109,14 @@ data:
   entity_id: cover.living_room
 ```
 
+### Delete saved states by regex
+Deletes saved states for entities that match provided regex.
+```yaml
+service: saver.delete_regex
+data:
+  entity_id_regex: light.living_room.*
+```
+
 ### Set variable
 Sets the value to the variable.
 ```yaml
@@ -153,15 +161,16 @@ It is possible to use saved data in templates using `saver_entity` and `saver_va
 
 After the completion of the services mentioned before, the following events are fired:
 
-| **Service Function**      | **Event ID**                          | **Provided Arguments** |
-|---------------------------|---------------------------------------|------------------------|
-| **save_state**            | event_saver_saved_entity              | entity_id              |
-| **restore_state**         | event_saver_restored                  | entity_id              |
-| **delete**                | event_saver_deleted_entity            | entity_id              |
-| **clear**                 | event_saver_cleared                   |                        |
-| **set_variable**          | event_saver_saved_variable            | variable, value        |
-| **delete_variable**       | event_saver_deleted_variable          | variable               |
-| **delete_variable_regex** | event_saver_deleted_variable_by_regex | variables, regex       |
+| **Service Function**      | **Event ID**                          | **Provided Arguments**    |
+|---------------------------|---------------------------------------|---------------------------|
+| **save_state**            | event_saver_saved_entity              | entity_id                 |
+| **restore_state**         | event_saver_restored                  | entity_id                 |
+| **delete**                | event_saver_deleted_entity            | entity_id                 |
+| **delete_regex**          | event_saver_deleted_entity_by_regex   | entity_id_regex, entities |
+| **clear**                 | event_saver_cleared                   |                           |
+| **set_variable**          | event_saver_saved_variable            | variable, value           |
+| **delete_variable**       | event_saver_deleted_variable          | variable                  |
+| **delete_variable_regex** | event_saver_deleted_variable_by_regex | variables, regex          |
 
 The events can be used to trigger further automations that depend on the completion of the services. The documentation is provided [here](https://www.home-assistant.io/docs/automation/trigger/#event-trigger). 
 
