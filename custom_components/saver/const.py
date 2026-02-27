@@ -7,6 +7,23 @@ import voluptuous as vol
 DOMAIN = 'saver'
 NAME = 'Saver'
 
+CONF_OPERATOR = 'operator'
+CONF_VARIABLE = 'variable'
+
+OPERATOR_EQ = 'eq'
+OPERATOR_NEQ = 'neq'
+OPERATOR_GT = 'gt'
+OPERATOR_LT = 'lt'
+OPERATOR_GTE = 'gte'
+OPERATOR_LTE = 'lte'
+OPERATOR_TIME_AFTER = 'time_after'
+OPERATOR_TIME_BEFORE = 'time_before'
+
+VALID_OPERATORS = [
+    OPERATOR_EQ, OPERATOR_NEQ, OPERATOR_GT, OPERATOR_LT,
+    OPERATOR_GTE, OPERATOR_LTE, OPERATOR_TIME_AFTER, OPERATOR_TIME_BEFORE,
+]
+
 SAVER_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema({})
@@ -62,3 +79,12 @@ SERVICE_SET_VARIABLE_SCHEMA = vol.Schema({
     vol.Required(CONF_NAME): cv.string,
     vol.Required(CONF_VALUE): cv.string
 })
+
+CONDITION_SCHEMA = vol.Schema({
+    vol.Required('condition'): DOMAIN,
+    vol.Required(CONF_VARIABLE): cv.string,
+    vol.Required(CONF_OPERATOR): vol.In(VALID_OPERATORS),
+    vol.Required(CONF_VALUE): cv.string,
+})
+
+TIMESTAMP_SUFFIX = '_timestamp'

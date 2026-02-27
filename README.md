@@ -150,12 +150,90 @@ service: saver.clear
 
 
 ## Using saved values in templates
-It is possible to use saved data in templates using `saver_entity` and `saver_variable` functions:
+
+It is possible to use saved data in templates using the `saver` namespace object:
+
+### Basic access
 ```yaml
-{{ saver_entity("sun.sun") }}  # returns saved state of "sun.sun" entity
-{{ saver_entity("sun.sun", "azimuth") }}  # returns "azimuth" attribute of saved "sun.sun" entity
-{{ saver_variable("counter") }}  # returns saved variable "counter"
+{{ saver.variable("counter") }}              # returns saved variable "counter"
+{{ saver.entity("sun.sun") }}                # returns saved state of "sun.sun" entity
+{{ saver.entity("sun.sun", "azimuth") }}     # returns "azimuth" attribute of saved "sun.sun" entity
 ```
+
+### Time comparisons
+
+Compare a saved variable against a time or datetime value. Supports `HH:MM`, `HH:MM:SS` and full ISO-8601 datetime (`2024-01-15T14:30:00`). Plain time values are combined with today's date for comparison. The full datetime (date + time) is always compared.
+
+```yaml
+{{ saver.cmp_time_after("timer_start", "12:05:00") }}           # true if saved time is after 12:05 today
+{{ saver.cmp_time_before("timer_start", "18:00") }}             # true if saved time is before 18:00 today
+{{ saver.cmp_time_after("timer_start", "2024-06-15T14:30:00") }} # compare against full datetime
+```
+
+### General comparisons
+
+```yaml
+{{ saver.cmp_eq("status", "active") }}    # true if variable equals "active" (string comparison)
+{{ saver.cmp_neq("status", "active") }}   # true if variable does not equal "active"
+{{ saver.cmp_gt("counter", "10") }}       # true if variable is greater than 10 (numeric)
+{{ saver.cmp_lt("counter", "10") }}       # true if variable is less than 10
+{{ saver.cmp_gte("counter", "10") }}      # true if variable is greater than or equal to 10
+{{ saver.cmp_lte("counter", "10") }}      # true if variable is less than or equal to 10
+```
+
+### Elapsed time
+
+Returns the number of seconds since a variable was last set. A timestamp is automatically stored whenever `saver.set_variable` is called.
+
+```yaml
+{{ saver.time_elapsed("timer_start") }}                       # seconds since variable was set
+{{ saver.time_elapsed("timer_start") > 3600 }}                # true if more than 1 hour has passed
+```
+
+### Legacy functions
+
+The previous `saver_variable` and `saver_entity` functions are still available for backwards compatibility:
+```yaml
+{{ saver_variable("counter") }}
+{{ saver_entity("sun.sun") }}
+{{ saver_entity("sun.sun", "azimuth") }}
+```
+
+## Automation Condition
+
+You can use `saver` as a condition in automations to check variable values directly:
+
+```yaml
+automation:
+  - alias: "Run after timer"
+    trigger:
+      - platform: time_pattern
+        minutes: "/5"
+    condition:
+      - condition: saver
+        variable: timer_start
+        operator: time_after
+        value: "12:05:00"
+    action:
+      - service: notify.notify
+        data:
+          message: "Timer has passed!"
+```
+
+### Supported operators
+
+| Operator | Description | Comparison type |
+|---|---|---|
+| `eq` | Equal | String |
+| `neq` | Not equal | String |
+| `gt` | Greater than | Numeric |
+| `lt` | Less than | Numeric |
+| `gte` | Greater than or equal | Numeric |
+| `lte` | Less than or equal | Numeric |
+| `time_after` | After datetime | DateTime |
+| `time_before` | Before datetime | DateTime |
+
+Time operators support `HH:MM`, `HH:MM:SS` and full ISO-8601 datetime formats. Plain time values are combined with today's date.
 
 ## Events
 
