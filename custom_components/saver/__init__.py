@@ -98,15 +98,14 @@ class SaverNamespace:
         return var_dt < cmp_dt
 
     def cmp_time_after_now(self, variable: str) -> bool | None:
-        """True if saved variable time is after the current time."""
+        """True if saved variable datetime is after the current datetime."""
         val = self.variable(variable)
         if val is None:
             return None
         var_dt = _parse_datetime(str(val))
         if var_dt is None:
             return None
-        now_dt = datetime.combine(date.today(), datetime.now().time())
-        return var_dt > now_dt
+        return var_dt > datetime.now()
 
     def _resolve_time_pair(self, variable: str, compare_to: str) -> tuple[datetime | None, datetime | None]:
         val = self.variable(variable)
@@ -292,7 +291,7 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
         data = call.data
         name = data[CONF_NAME]
         if data.get(CONF_USE_CURRENT_TIME, False):
-            value = datetime.now().strftime("%H:%M:%S")
+            value = datetime.now().isoformat()
         else:
             value = data[CONF_VALUE]
         saver_entity.set_variable(name, value)

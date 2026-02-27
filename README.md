@@ -118,7 +118,7 @@ data:
 ```
 
 ### Set variable
-Sets the value to the variable. You can either provide a value directly or use `use_current_time` to automatically store the current time (`HH:MM:SS`).
+Sets the value to the variable. You can either provide a value directly or use `use_current_time` to automatically store the current date and time (ISO-8601 format, e.g. `2024-06-15T14:30:05.123456`). This enables time comparisons across days (>24h).
 ```yaml
 service: saver.set_variable
 data:
@@ -126,7 +126,7 @@ data:
   value: 3
 ```
 
-Store the current time (for use with time comparison templates):
+Store the current date and time (for use with time comparison templates, supports >24h comparisons):
 ```yaml
 service: saver.set_variable
 data:
@@ -170,13 +170,13 @@ It is possible to use saved data in templates using the `saver` namespace object
 
 ### Time comparisons
 
-Compare a saved variable against a time or datetime value. Supports `HH:MM`, `HH:MM:SS` and full ISO-8601 datetime (`2024-01-15T14:30:00`). Plain time values are combined with today's date for comparison.
+Compare a saved variable against a time or datetime value. Supports `HH:MM`, `HH:MM:SS` and full ISO-8601 datetime (`2024-01-15T14:30:00`). Plain time values are combined with today's date for comparison. When using `use_current_time: true`, the full datetime (including date) is stored, enabling comparisons across days.
 
 ```yaml
 {{ saver.cmp_time_after("timer_start", "12:05:00") }}           # true if saved time is after 12:05 today
 {{ saver.cmp_time_before("timer_start", "18:00") }}             # true if saved time is before 18:00 today
 {{ saver.cmp_time_after("timer_start", "2024-06-15T14:30:00") }} # compare against full datetime
-{{ saver.cmp_time_after_now("timer_start") }}                    # true if saved time is after the current time
+{{ saver.cmp_time_after_now("timer_start") }}                    # true if saved datetime is after current datetime
 ```
 
 ### General comparisons
@@ -192,7 +192,7 @@ Compare a saved variable against a time or datetime value. Supports `HH:MM`, `HH
 
 ### Elapsed time
 
-Returns the number of seconds elapsed since the time stored in a variable. The variable must contain a parseable time value (e.g. set via `use_current_time: true`).
+Returns the number of seconds elapsed since the datetime stored in a variable. The variable must contain a parseable time or datetime value (e.g. set via `use_current_time: true`). When using full datetime values, elapsed time works correctly across days.
 
 ```yaml
 {{ saver.time_elapsed("timer_start") }}                       # seconds since the stored time
