@@ -59,7 +59,7 @@ delete_variable_regex:
 set_variable:
   name: Set variable
   description: >
-    Sets the value to the variable.
+    Sets a value or the current time to a variable.
   fields:
     name:
       name: Variable
@@ -70,11 +70,21 @@ set_variable:
         text:
     value:
       name: Value
-      description: The new value
-      example: 3
-      required: true
+      description: The value to set. Not required when "Use current time" is enabled.
+      example: "3"
+      required: false
       selector:
         text:
+    use_current_time:
+      name: Use current time
+      description: >
+        Sets the variable to the current time (HH:MM:SS).
+        Can be used with time_after / time_before conditions.
+        If enabled, "Value" is ignored.
+      default: false
+      required: false
+      selector:
+        boolean:
 
 save_state:
   name: Save state

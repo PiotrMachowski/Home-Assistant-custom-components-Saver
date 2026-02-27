@@ -97,6 +97,17 @@ class SaverNamespace:
             return None
         return var_dt < cmp_dt
 
+    def cmp_time_after_now(self, variable: str) -> bool | None:
+        """True if saved variable time is after the current time."""
+        val = self.variable(variable)
+        if val is None:
+            return None
+        var_dt = _parse_datetime(str(val))
+        if var_dt is None:
+            return None
+        now_dt = datetime.combine(date.today(), datetime.now().time())
+        return var_dt > now_dt
+
     def _resolve_time_pair(self, variable: str, compare_to: str) -> tuple[datetime | None, datetime | None]:
         val = self.variable(variable)
         if val is None:
@@ -139,18 +150,14 @@ class SaverNamespace:
     # -- elapsed time --
 
     def time_elapsed(self, variable: str) -> float | None:
-        """Seconds elapsed since the variable was last set."""
-        variables = self._get_variables()
-        if variables is None:
+        """Seconds elapsed since the time stored in the variable."""
+        val = self.variable(variable)
+        if val is None:
             return None
-        ts_key = f"_{variable}{TIMESTAMP_SUFFIX}"
-        if ts_key not in variables:
+        dt = _parse_datetime(str(val))
+        if dt is None:
             return None
-        try:
-            ts = datetime.fromisoformat(variables[ts_key])
-            return (datetime.now() - ts).total_seconds()
-        except (ValueError, TypeError):
-            return None
+        return (datetime.now() - dt).total_seconds()
 
     def __repr__(self) -> str:
         return "<template SaverNamespace>"
@@ -284,7 +291,10 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     def set_variable(call) -> None:
         data = call.data
         name = data[CONF_NAME]
-        value = data[CONF_VALUE]
+        if data.get(CONF_USE_CURRENT_TIME, False):
+            value = datetime.now().strftime("%H:%M:%S")
+        else:
+            value = data[CONF_VALUE]
         saver_entity.set_variable(name, value)
         hass.bus.fire('event_saver_saved_variable', {'variable': name, 'value': value})
 
@@ -370,11 +380,9 @@ class SaverEntity(RestoreEntity):
         self.schedule_update_ha_state()
 
     def set_variable(self, variable: str, value: Any) -> None:
-        ts_key = f"_{variable}{TIMESTAMP_SUFFIX}"
         self._variables_db = {
             **self._variables_db,
             variable: value,
-            ts_key: datetime.now().isoformat(),
         }
         self.schedule_update_ha_state()
 

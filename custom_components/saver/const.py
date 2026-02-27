@@ -7,23 +7,6 @@ import voluptuous as vol
 DOMAIN = 'saver'
 NAME = 'Saver'
 
-CONF_OPERATOR = 'operator'
-CONF_VARIABLE = 'variable'
-
-OPERATOR_EQ = 'eq'
-OPERATOR_NEQ = 'neq'
-OPERATOR_GT = 'gt'
-OPERATOR_LT = 'lt'
-OPERATOR_GTE = 'gte'
-OPERATOR_LTE = 'lte'
-OPERATOR_TIME_AFTER = 'time_after'
-OPERATOR_TIME_BEFORE = 'time_before'
-
-VALID_OPERATORS = [
-    OPERATOR_EQ, OPERATOR_NEQ, OPERATOR_GT, OPERATOR_LT,
-    OPERATOR_GTE, OPERATOR_LTE, OPERATOR_TIME_AFTER, OPERATOR_TIME_BEFORE,
-]
-
 SAVER_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema({})
@@ -35,6 +18,7 @@ CONF_DELETE_AFTER_RUN = 'delete_after_run'
 CONF_RESTORE_SCRIPT = 'restore_script'
 CONF_SCRIPT = 'script'
 CONF_VALUE = 'value'
+CONF_USE_CURRENT_TIME = 'use_current_time'
 CONF_REGEX = 'regex'
 CONF_ENTITY_ID_REGEX = CONF_ENTITY_ID + '_regex'
 
@@ -75,16 +59,20 @@ SERVICE_SAVE_STATE_SCHEMA = vol.Schema({
 })
 
 SERVICE_SET_VARIABLE = 'set_variable'
-SERVICE_SET_VARIABLE_SCHEMA = vol.Schema({
-    vol.Required(CONF_NAME): cv.string,
-    vol.Required(CONF_VALUE): cv.string
-})
 
-CONDITION_SCHEMA = vol.Schema({
-    vol.Required('condition'): DOMAIN,
-    vol.Required(CONF_VARIABLE): cv.string,
-    vol.Required(CONF_OPERATOR): vol.In(VALID_OPERATORS),
-    vol.Required(CONF_VALUE): cv.string,
-})
 
-TIMESTAMP_SUFFIX = '_timestamp'
+def _validate_set_variable(config):
+    """Ensure either 'value' or 'use_current_time: true' is provided."""
+    if CONF_VALUE not in config and not config.get(CONF_USE_CURRENT_TIME, False):
+        raise vol.Invalid("Either 'value' or 'use_current_time: true' must be provided")
+    return config
+
+
+SERVICE_SET_VARIABLE_SCHEMA = vol.All(
+    vol.Schema({
+        vol.Required(CONF_NAME): cv.string,
+        vol.Optional(CONF_VALUE): cv.string,
+        vol.Optional(CONF_USE_CURRENT_TIME, default=False): cv.boolean,
+    }),
+    _validate_set_variable,
+)
