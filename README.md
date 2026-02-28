@@ -118,7 +118,9 @@ data:
 ```
 
 ### Set variable
-Sets the value to the variable. You can either provide a value directly or use `use_current_time` to automatically store the current date and time (ISO-8601 format, e.g. `2024-06-15T14:30:05.123456`). This enables time comparisons across days (>24h).
+Sets a variable to a manual value, an entity state, or the current timestamp. Only one of `value`, `value_entity` or `use_current_time` can be used at a time.
+
+Manual value:
 ```yaml
 service: saver.set_variable
 data:
@@ -126,7 +128,15 @@ data:
   value: 3
 ```
 
-Store the current date and time (for use with time comparison templates, supports >24h comparisons):
+Use the current state of an entity:
+```yaml
+service: saver.set_variable
+data:
+  name: living_room_temp
+  value_entity: sensor.living_room_temperature
+```
+
+Store the current date and time (ISO-8601, supports >24h comparisons):
 ```yaml
 service: saver.set_variable
 data:

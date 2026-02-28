@@ -18,6 +18,7 @@ CONF_DELETE_AFTER_RUN = 'delete_after_run'
 CONF_RESTORE_SCRIPT = 'restore_script'
 CONF_SCRIPT = 'script'
 CONF_VALUE = 'value'
+CONF_VALUE_ENTITY = 'value_entity'
 CONF_USE_CURRENT_TIME = 'use_current_time'
 CONF_REGEX = 'regex'
 CONF_ENTITY_ID_REGEX = CONF_ENTITY_ID + '_regex'
@@ -62,9 +63,18 @@ SERVICE_SET_VARIABLE = 'set_variable'
 
 
 def _validate_set_variable(config):
-    """Ensure either 'value' or 'use_current_time: true' is provided."""
-    if CONF_VALUE not in config and not config.get(CONF_USE_CURRENT_TIME, False):
-        raise vol.Invalid("Either 'value' or 'use_current_time: true' must be provided")
+    """Ensure exactly one of 'value', 'value_entity' or 'use_current_time' is provided."""
+    sources = sum([
+        CONF_VALUE in config,
+        CONF_VALUE_ENTITY in config,
+        config.get(CONF_USE_CURRENT_TIME, False),
+    ])
+    if sources == 0:
+        raise vol.Invalid(
+            "One of 'value', 'value_entity' or 'use_current_time: true' must be provided")
+    if sources > 1:
+        raise vol.Invalid(
+            "Only one of 'value', 'value_entity' or 'use_current_time: true' can be used")
     return config
 
 
@@ -72,6 +82,7 @@ SERVICE_SET_VARIABLE_SCHEMA = vol.All(
     vol.Schema({
         vol.Required(CONF_NAME): cv.string,
         vol.Optional(CONF_VALUE): cv.string,
+        vol.Optional(CONF_VALUE_ENTITY): cv.entity_id,
         vol.Optional(CONF_USE_CURRENT_TIME, default=False): cv.boolean,
     }),
     _validate_set_variable,

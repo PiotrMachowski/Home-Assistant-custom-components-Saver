@@ -292,6 +292,9 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
         name = data[CONF_NAME]
         if data.get(CONF_USE_CURRENT_TIME, False):
             value = datetime.now().isoformat()
+        elif CONF_VALUE_ENTITY in data:
+            state = hass.states.get(data[CONF_VALUE_ENTITY])
+            value = state.state if state is not None else None
         else:
             value = data[CONF_VALUE]
         saver_entity.set_variable(name, value)

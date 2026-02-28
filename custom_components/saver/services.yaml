@@ -59,7 +59,8 @@ delete_variable_regex:
 set_variable:
   name: Set variable
   description: >
-    Sets a value or the current time to a variable.
+    Sets a variable to a manual value, an entity state, or the current timestamp.
+    Only one of "Value", "Entity" or "Use current time" can be used.
   fields:
     name:
       name: Variable
@@ -70,17 +71,25 @@ set_variable:
         text:
     value:
       name: Value
-      description: The value to set. Not required when "Use current time" is enabled.
+      description: A manual value to set. Cannot be combined with "Entity" or "Use current time".
       example: "3"
       required: false
       selector:
         text:
+    value_entity:
+      name: Entity
+      description: >
+        An entity whose current state will be used as the value.
+        Cannot be combined with "Value" or "Use current time".
+      required: false
+      selector:
+        entity:
     use_current_time:
       name: Use current time
       description: >
         Sets the variable to the current date and time (ISO-8601 format).
         Enables time comparisons across days (>24h).
-        If enabled, "Value" is ignored.
+        Cannot be combined with "Value" or "Entity".
       default: false
       required: false
       selector:
