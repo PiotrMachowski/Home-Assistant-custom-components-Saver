@@ -16,6 +16,17 @@ _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = SAVER_SCHEMA
 
 
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up Saver integration (component level, required for condition platform)."""
+    if DOMAIN in config:
+        await hass.async_add_executor_job(setup_entry, hass, config)
+    try:
+        from . import condition  # noqa: F401
+    except Exception as err:
+        _LOGGER.error("Failed to load Saver condition platform: %s", err, exc_info=True)
+    return True
+
+
 def setup(hass, config) -> bool:
     if DOMAIN not in config:
         return True
@@ -418,3 +429,10 @@ class SaverEntity(RestoreEntity):
             "state": state,
             **{attr_key: json.loads(json.dumps(attr_val)) for attr_key, attr_val in attrs.items()},
         }
+
+
+# Import condition platform after all classes are defined to avoid circular imports
+try:
+    from . import condition  # noqa: F401
+except Exception as err:
+    _LOGGER.warning("Could not load Saver condition platform: %s", err, exc_info=True)

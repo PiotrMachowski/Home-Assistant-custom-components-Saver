@@ -59,6 +59,24 @@ SERVICE_SAVE_STATE_SCHEMA = vol.Schema({
     vol.Required(CONF_ENTITY_ID): cv.entity_ids
 })
 
+# Condition-related constants
+CONF_VARIABLE = 'variable'
+CONF_COMPARISON = 'comparison'
+CONF_COMPARE_TO = 'compare_to'
+CONF_ABOVE = 'above'
+CONF_BELOW = 'below'
+
+CMP_EQ = 'eq'
+CMP_NEQ = 'neq'
+CMP_GT = 'gt'
+CMP_LT = 'lt'
+CMP_GTE = 'gte'
+CMP_LTE = 'lte'
+
+CMP_TIME_AFTER = 'after'
+CMP_TIME_BEFORE = 'before'
+CMP_TIME_AFTER_NOW = 'after_now'
+
 SERVICE_SET_VARIABLE = 'set_variable'
 
 

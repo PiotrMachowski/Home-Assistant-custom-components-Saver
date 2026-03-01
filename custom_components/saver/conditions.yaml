@@ -1,0 +1,67 @@
+time_elapsed:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    above:
+      selector:
+        number:
+          min: 0
+          step: 1
+          unit_of_measurement: seconds
+    below:
+      selector:
+        number:
+          min: 0
+          step: 1
+          unit_of_measurement: seconds
+
+compare_value:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    comparison:
+      required: true
+      selector:
+        select:
+          options:
+            - value: "eq"
+              label: "Equals"
+            - value: "neq"
+              label: "Not equals"
+            - value: "gt"
+              label: "Greater than"
+            - value: "lt"
+              label: "Less than"
+            - value: "gte"
+              label: "Greater than or equal"
+            - value: "lte"
+              label: "Less than or equal"
+    value:
+      required: true
+      selector:
+        text:
+
+compare_time:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    comparison:
+      required: true
+      selector:
+        select:
+          options:
+            - value: "after"
+              label: "After"
+            - value: "before"
+              label: "Before"
+            - value: "after_now"
+              label: "After current time"
+    compare_to:
+      selector:
+        text:

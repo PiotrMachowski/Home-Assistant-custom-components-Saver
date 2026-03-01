@@ -218,6 +218,60 @@ The previous `saver_variable` and `saver_entity` functions are still available f
 {{ saver_entity("sun.sun", "azimuth") }}
 ```
 
+## Automation Conditions
+
+Saver provides custom automation conditions that appear in the Home Assistant automation UI. These mirror the template comparison functions and can be added visually.
+
+### Time elapsed
+
+Check if the elapsed time since a stored datetime variable exceeds or falls below a threshold (in seconds). At least one of `above` or `below` must be set. If both are set, both must be satisfied (range check).
+
+```yaml
+condition: saver.time_elapsed
+options:
+  variable: timer_start
+  above: 1800          # more than 30 minutes ago
+```
+
+```yaml
+condition: saver.time_elapsed
+options:
+  variable: timer_start
+  above: 60
+  below: 3600          # between 1 minute and 1 hour
+```
+
+### Compare value
+
+Compare a stored variable against a value. Available operators: `eq`, `neq`, `gt`, `lt`, `gte`, `lte`. Numeric operators (`gt`, `lt`, `gte`, `lte`) convert both sides to numbers.
+
+```yaml
+condition: saver.compare_value
+options:
+  variable: counter
+  comparison: gt
+  value: "10"
+```
+
+### Compare time
+
+Compare a stored datetime variable against another time or the current time. Available comparisons: `after`, `before`, `after_now`. For `after` and `before`, a `compare_to` value is required (supports `HH:MM`, `HH:MM:SS`, or ISO-8601 datetime).
+
+```yaml
+condition: saver.compare_time
+options:
+  variable: timer_start
+  comparison: after_now
+```
+
+```yaml
+condition: saver.compare_time
+options:
+  variable: timer_start
+  comparison: after
+  compare_to: "12:05:00"
+```
+
 ## Events
 
 After the completion of the services mentioned before, the following events are fired:
