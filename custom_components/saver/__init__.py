@@ -1,7 +1,7 @@
 import json
 import logging
 import regex
-from datetime import datetime, date
+from datetime import datetime, timedelta
 from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
@@ -9,17 +9,28 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.template import _get_state_if_valid, Template, TemplateEnvironment
+from homeassistant.util import dt as dt_util
 
 from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = SAVER_SCHEMA
 
+_NAMESPACE_SAFE_ATTRS = frozenset({
+    "variable", "entity",
+    "cmp_eq", "cmp_neq", "cmp_gt", "cmp_lt", "cmp_gte", "cmp_lte",
+    "cmp_time_after", "cmp_time_before", "cmp_time_after_now",
+    "time_elapsed",
+})
+
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up Saver integration (component level, required for condition platform)."""
+    if hass.data.get(DOMAIN, {}).get("setup_done"):
+        return True
     if DOMAIN in config:
         await hass.async_add_executor_job(setup_entry, hass, config)
+        hass.data.setdefault(DOMAIN, {})["setup_done"] = True
     try:
         from . import condition  # noqa: F401
     except Exception as err:
@@ -27,29 +38,41 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
-def setup(hass, config) -> bool:
-    if DOMAIN not in config:
-        return True
-    return setup_entry(hass, config)
-
-
 async def async_setup_entry(hass, config_entry):
+    if hass.data.get(DOMAIN, {}).get("setup_done"):
+        return True
     result = await hass.async_add_executor_job(setup_entry, hass, config_entry)
+    hass.data.setdefault(DOMAIN, {})["setup_done"] = True
     return result
 
 
+def _parse_datetime_with_kind(value: str) -> tuple[datetime | None, str | None]:
+    """Parse an ISO datetime, ISO date or HH:MM[:SS] time into a timezone-aware datetime.
+
+    Returns (datetime, kind) where kind is one of "datetime", "date", "time", or None.
+    Naive ISO datetimes are interpreted as **local** time (HA's configured timezone),
+    not UTC, since users typically store local timestamps.
+    """
+    local_tz = dt_util.DEFAULT_TIME_ZONE
+    dt = dt_util.parse_datetime(value)
+    if dt is not None:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=local_tz)
+        return dt, "datetime"
+    d = dt_util.parse_date(value)
+    if d is not None:
+        return datetime(d.year, d.month, d.day, tzinfo=local_tz), "date"
+    t = dt_util.parse_time(value)
+    if t is not None:
+        today = dt_util.now().date()
+        return datetime.combine(today, t, tzinfo=local_tz), "time"
+    return None, None
+
+
 def _parse_datetime(value: str) -> datetime | None:
-    """Parse a time or datetime string into a full datetime object."""
-    for fmt in ("%H:%M:%S", "%H:%M"):
-        try:
-            t = datetime.strptime(value, fmt).time()
-            return datetime.combine(date.today(), t)
-        except ValueError:
-            continue
-    try:
-        return datetime.fromisoformat(value)
-    except ValueError:
-        return None
+    """Parse an ISO datetime, ISO date, or HH:MM[:SS] time into a timezone-aware datetime."""
+    dt, _ = _parse_datetime_with_kind(value)
+    return dt
 
 
 class SaverNamespace:
@@ -116,7 +139,7 @@ class SaverNamespace:
         var_dt = _parse_datetime(str(val))
         if var_dt is None:
             return None
-        return var_dt > datetime.now()
+        return var_dt > dt_util.now()
 
     def _resolve_time_pair(self, variable: str, compare_to: str) -> tuple[datetime | None, datetime | None]:
         val = self.variable(variable)
@@ -167,7 +190,7 @@ class SaverNamespace:
         dt = _parse_datetime(str(val))
         if dt is None:
             return None
-        return (datetime.now() - dt).total_seconds()
+        return (dt_util.now() - dt).total_seconds()
 
     def __repr__(self) -> str:
         return "<template SaverNamespace>"
@@ -207,7 +230,7 @@ def setup_templates(hass: HomeAssistant) -> None:
 
     def is_safe_attribute(self: TemplateEnvironment, obj, attr, value) -> bool:
         if isinstance(obj, SaverNamespace):
-            return True
+            return attr in _NAMESPACE_SAFE_ATTRS
         # noinspection PyUnresolvedReferences
         return self.saver_original_is_safe_attribute(obj, attr, value)
 
@@ -302,7 +325,7 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
         data = call.data
         name = data[CONF_NAME]
         if data.get(CONF_USE_CURRENT_TIME, False):
-            value = datetime.now().isoformat()
+            value = dt_util.now().isoformat()
         elif CONF_VALUE_ENTITY in data:
             state = hass.states.get(data[CONF_VALUE_ENTITY])
             value = state.state if state is not None else None
@@ -431,8 +454,3 @@ class SaverEntity(RestoreEntity):
         }
 
 
-# Import condition platform after all classes are defined to avoid circular imports
-try:
-    from . import condition  # noqa: F401
-except Exception as err:
-    _LOGGER.warning("Could not load Saver condition platform: %s", err, exc_info=True)
