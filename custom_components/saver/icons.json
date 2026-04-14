@@ -9,5 +9,10 @@
         "compare_time": {
             "condition": "mdi:clock-check-outline"
         }
+    },
+    "triggers": {
+        "compare_time": {
+            "trigger": "mdi:clock-start"
+        }
     }
 }
