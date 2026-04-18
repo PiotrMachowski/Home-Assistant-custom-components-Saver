@@ -1,6 +1,7 @@
 import json
 import logging
 import regex
+from datetime import datetime, timedelta
 from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
@@ -8,53 +9,102 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.template import _get_state_if_valid, Template, TemplateEnvironment
+from homeassistant.util import dt as dt_util
 
 from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = SAVER_SCHEMA
 
+_NAMESPACE_SAFE_ATTRS = frozenset({
+    "variable", "entity",
+    "cmp_eq", "cmp_neq", "cmp_gt", "cmp_lt", "cmp_gte", "cmp_lte",
+    "cmp_time_after", "cmp_time_before", "cmp_time_after_now",
+    "time_elapsed",
+})
 
-def setup(hass, config) -> bool:
-    if DOMAIN not in config:
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up Saver integration (component level, required for condition platform)."""
+    if hass.data.get(DOMAIN, {}).get("setup_done"):
         return True
-    return setup_entry(hass, config)
+    if DOMAIN in config:
+        await hass.async_add_executor_job(setup_entry, hass, config)
+        hass.data.setdefault(DOMAIN, {})["setup_done"] = True
+    try:
+        from . import condition  # noqa: F401
+    except Exception as err:
+        _LOGGER.error("Failed to load Saver condition platform: %s", err, exc_info=True)
+    return True
 
 
 async def async_setup_entry(hass, config_entry):
+    if hass.data.get(DOMAIN, {}).get("setup_done"):
+        return True
     result = await hass.async_add_executor_job(setup_entry, hass, config_entry)
+    hass.data.setdefault(DOMAIN, {})["setup_done"] = True
     return result
 
 
-class SaverVariableTemplate:
+def _parse_datetime_with_kind(value: str) -> tuple[datetime | None, str | None]:
+    """Parse an ISO datetime, ISO date or HH:MM[:SS] time into a timezone-aware datetime.
+
+    Returns (datetime, kind) where kind is one of "datetime", "date", "time", or None.
+    Naive ISO datetimes are interpreted as **local** time (HA's configured timezone),
+    not UTC, since users typically store local timestamps.
+    """
+    local_tz = dt_util.DEFAULT_TIME_ZONE
+    dt = dt_util.parse_datetime(value)
+    if dt is not None:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=local_tz)
+        return dt, "datetime"
+    d = dt_util.parse_date(value)
+    if d is not None:
+        return datetime(d.year, d.month, d.day, tzinfo=local_tz), "date"
+    t = dt_util.parse_time(value)
+    if t is not None:
+        today = dt_util.now().date()
+        return datetime.combine(today, t, tzinfo=local_tz), "time"
+    return None, None
+
+
+def _parse_datetime(value: str) -> datetime | None:
+    """Parse an ISO datetime, ISO date, or HH:MM[:SS] time into a timezone-aware datetime."""
+    dt, _ = _parse_datetime_with_kind(value)
+    return dt
+
+
+class SaverNamespace:
+    """Namespace object exposed as `saver` in Jinja2 templates."""
+
     def __init__(self, hass: HomeAssistant, entity_id: str) -> None:
         self._hass = hass
         self._entity_id = entity_id
 
-    def __call__(self, variable: str) -> Any:
+    def _get_variables(self) -> dict[str, Any] | None:
         saver_state = _get_state_if_valid(self._hass, self._entity_id)
         if saver_state is None:
             return None
-        variables = saver_state.attributes["variables"]
-        if variable in variables:
-            return variables[variable]
-        return None
+        return saver_state.attributes.get("variables")
 
-    def __repr__(self) -> str:
-        return "<template SaverVariable>"
-
-
-class SaverEntityTemplate:
-    def __init__(self, hass: HomeAssistant, entity_id: str) -> None:
-        self._hass = hass
-        self._entity_id = entity_id
-
-    def __call__(self, entity_id: str, attribute: str | None = None) -> Any:
+    def _get_entities(self) -> dict[str, Any] | None:
         saver_state = _get_state_if_valid(self._hass, self._entity_id)
         if saver_state is None:
             return None
-        entities = saver_state.attributes["entities"]
-        if entity_id not in entities:
+        return saver_state.attributes.get("entities")
+
+    # -- existing accessors --
+
+    def variable(self, variable: str) -> Any:
+        variables = self._get_variables()
+        if variables is None or variable not in variables:
+            return None
+        return variables[variable]
+
+    def entity(self, entity_id: str, attribute: str | None = None) -> Any:
+        entities = self._get_entities()
+        if entities is None or entity_id not in entities:
             return None
         state = entities[entity_id]
         state_val = state["state"] if isinstance(state, dict) else state.state
@@ -65,6 +115,109 @@ class SaverEntityTemplate:
             return None
         return attrs[attribute]
 
+    # -- time comparisons (full datetime including date) --
+
+    def cmp_time_after(self, variable: str, compare_to: str) -> bool | None:
+        """True if saved variable datetime is after compare_to."""
+        var_dt, cmp_dt = self._resolve_time_pair(variable, compare_to)
+        if var_dt is None or cmp_dt is None:
+            return None
+        return var_dt > cmp_dt
+
+    def cmp_time_before(self, variable: str, compare_to: str) -> bool | None:
+        """True if saved variable datetime is before compare_to."""
+        var_dt, cmp_dt = self._resolve_time_pair(variable, compare_to)
+        if var_dt is None or cmp_dt is None:
+            return None
+        return var_dt < cmp_dt
+
+    def cmp_time_after_now(self, variable: str) -> bool | None:
+        """True if saved variable datetime is after the current datetime."""
+        val = self.variable(variable)
+        if val is None:
+            return None
+        var_dt = _parse_datetime(str(val))
+        if var_dt is None:
+            return None
+        return var_dt > dt_util.now()
+
+    def _resolve_time_pair(self, variable: str, compare_to: str) -> tuple[datetime | None, datetime | None]:
+        val = self.variable(variable)
+        if val is None:
+            return None, None
+        var_dt = _parse_datetime(str(val))
+        cmp_dt = _parse_datetime(compare_to)
+        return var_dt, cmp_dt
+
+    # -- general comparisons --
+
+    def cmp_eq(self, variable: str, value: str) -> bool | None:
+        val = self.variable(variable)
+        return str(val) == value if val is not None else None
+
+    def cmp_neq(self, variable: str, value: str) -> bool | None:
+        val = self.variable(variable)
+        return str(val) != value if val is not None else None
+
+    def cmp_gt(self, variable: str, value: str) -> bool | None:
+        return self._numeric_cmp(variable, value, lambda a, b: a > b)
+
+    def cmp_lt(self, variable: str, value: str) -> bool | None:
+        return self._numeric_cmp(variable, value, lambda a, b: a < b)
+
+    def cmp_gte(self, variable: str, value: str) -> bool | None:
+        return self._numeric_cmp(variable, value, lambda a, b: a >= b)
+
+    def cmp_lte(self, variable: str, value: str) -> bool | None:
+        return self._numeric_cmp(variable, value, lambda a, b: a <= b)
+
+    def _numeric_cmp(self, variable: str, value: str, op: Callable) -> bool | None:
+        val = self.variable(variable)
+        if val is None:
+            return None
+        try:
+            return op(float(val), float(value))
+        except (ValueError, TypeError):
+            return None
+
+    # -- elapsed time --
+
+    def time_elapsed(self, variable: str) -> float | None:
+        """Seconds elapsed since the time stored in the variable."""
+        val = self.variable(variable)
+        if val is None:
+            return None
+        dt = _parse_datetime(str(val))
+        if dt is None:
+            return None
+        return (dt_util.now() - dt).total_seconds()
+
+    def __repr__(self) -> str:
+        return "<template SaverNamespace>"
+
+
+class SaverVariableTemplate:
+    """Legacy wrapper for backwards compatibility."""
+
+    def __init__(self, hass: HomeAssistant, entity_id: str) -> None:
+        self._namespace = SaverNamespace(hass, entity_id)
+
+    def __call__(self, variable: str) -> Any:
+        return self._namespace.variable(variable)
+
+    def __repr__(self) -> str:
+        return "<template SaverVariable>"
+
+
+class SaverEntityTemplate:
+    """Legacy wrapper for backwards compatibility."""
+
+    def __init__(self, hass: HomeAssistant, entity_id: str) -> None:
+        self._namespace = SaverNamespace(hass, entity_id)
+
+    def __call__(self, entity_id: str, attribute: str | None = None) -> Any:
+        return self._namespace.entity(entity_id, attribute)
+
     def __repr__(self) -> str:
         return "<template SaverEntityTemplate>"
 
@@ -72,10 +225,19 @@ class SaverEntityTemplate:
 def setup_templates(hass: HomeAssistant) -> None:
     def is_safe_callable(self: TemplateEnvironment, obj) -> bool:
         # noinspection PyUnresolvedReferences
-        return (isinstance(obj, (SaverVariableTemplate, SaverEntityTemplate))
+        return (isinstance(obj, (SaverVariableTemplate, SaverEntityTemplate, SaverNamespace))
                 or self.saver_original_is_safe_callable(obj))
 
+    def is_safe_attribute(self: TemplateEnvironment, obj, attr, value) -> bool:
+        if isinstance(obj, SaverNamespace):
+            return attr in _NAMESPACE_SAFE_ATTRS
+        # noinspection PyUnresolvedReferences
+        return self.saver_original_is_safe_attribute(obj, attr, value)
+
     def patch_environment(env: TemplateEnvironment) -> None:
+        saver_ns = SaverNamespace(hass, f"{DOMAIN}.{DOMAIN}")
+        env.globals["saver"] = saver_ns
+        # Legacy aliases for backwards compatibility
         env.globals["saver_variable"] = SaverVariableTemplate(hass, f"{DOMAIN}.{DOMAIN}")
         env.globals["saver_entity"] = SaverEntityTemplate(hass, f"{DOMAIN}.{DOMAIN}")
 
@@ -97,6 +259,10 @@ def setup_templates(hass: HomeAssistant) -> None:
     if not hasattr(TemplateEnvironment, 'saver_original_is_safe_callable'):
         TemplateEnvironment.saver_original_is_safe_callable = TemplateEnvironment.is_safe_callable
         TemplateEnvironment.is_safe_callable = is_safe_callable
+
+    if not hasattr(TemplateEnvironment, 'saver_original_is_safe_attribute'):
+        TemplateEnvironment.saver_original_is_safe_attribute = TemplateEnvironment.is_safe_attribute
+        TemplateEnvironment.is_safe_attribute = is_safe_attribute
 
     tpl = Template("", hass)
     tpl._strict = False
@@ -158,7 +324,13 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     def set_variable(call) -> None:
         data = call.data
         name = data[CONF_NAME]
-        value = data[CONF_VALUE]
+        if data.get(CONF_USE_CURRENT_TIME, False):
+            value = dt_util.now().isoformat()
+        elif CONF_VALUE_ENTITY in data:
+            state = hass.states.get(data[CONF_VALUE_ENTITY])
+            value = state.state if state is not None else None
+        else:
+            value = data[CONF_VALUE]
         saver_entity.set_variable(name, value)
         hass.bus.fire('event_saver_saved_variable', {'variable': name, 'value': value})
 
@@ -244,7 +416,10 @@ class SaverEntity(RestoreEntity):
         self.schedule_update_ha_state()
 
     def set_variable(self, variable: str, value: Any) -> None:
-        self._variables_db = {**self._variables_db, variable: value}
+        self._variables_db = {
+            **self._variables_db,
+            variable: value,
+        }
         self.schedule_update_ha_state()
 
     @property
@@ -277,3 +452,5 @@ class SaverEntity(RestoreEntity):
             "state": state,
             **{attr_key: json.loads(json.dumps(attr_val)) for attr_key, attr_val in attrs.items()},
         }
+
+

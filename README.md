@@ -118,12 +118,30 @@ data:
 ```
 
 ### Set variable
-Sets the value to the variable.
+Sets a variable to a manual value, an entity state, or the current timestamp. Only one of `value`, `value_entity` or `use_current_time` can be used at a time.
+
+Manual value:
 ```yaml
 service: saver.set_variable
 data:
   name: counter
   value: 3
+```
+
+Use the current state of an entity:
+```yaml
+service: saver.set_variable
+data:
+  name: living_room_temp
+  value_entity: sensor.living_room_temperature
+```
+
+Store the current date and time (ISO-8601, supports >24h comparisons):
+```yaml
+service: saver.set_variable
+data:
+  name: timer_start
+  use_current_time: true
 ```
 
 ### Delete variable
@@ -150,11 +168,108 @@ service: saver.clear
 
 
 ## Using saved values in templates
-It is possible to use saved data in templates using `saver_entity` and `saver_variable` functions:
+
+It is possible to use saved data in templates using the `saver` namespace object:
+
+### Basic access
 ```yaml
-{{ saver_entity("sun.sun") }}  # returns saved state of "sun.sun" entity
-{{ saver_entity("sun.sun", "azimuth") }}  # returns "azimuth" attribute of saved "sun.sun" entity
-{{ saver_variable("counter") }}  # returns saved variable "counter"
+{{ saver.variable("counter") }}              # returns saved variable "counter"
+{{ saver.entity("sun.sun") }}                # returns saved state of "sun.sun" entity
+{{ saver.entity("sun.sun", "azimuth") }}     # returns "azimuth" attribute of saved "sun.sun" entity
+```
+
+### Time comparisons
+
+Compare a saved variable against a time or datetime value. Supports `HH:MM`, `HH:MM:SS` and full ISO-8601 datetime (`2024-01-15T14:30:00`). Plain time values are combined with today's date for comparison. When using `use_current_time: true`, the full datetime (including date) is stored, enabling comparisons across days.
+
+```yaml
+{{ saver.cmp_time_after("timer_start", "12:05:00") }}           # true if saved time is after 12:05 today
+{{ saver.cmp_time_before("timer_start", "18:00") }}             # true if saved time is before 18:00 today
+{{ saver.cmp_time_after("timer_start", "2024-06-15T14:30:00") }} # compare against full datetime
+{{ saver.cmp_time_after_now("timer_start") }}                    # true if saved datetime is after current datetime
+```
+
+### General comparisons
+
+```yaml
+{{ saver.cmp_eq("status", "active") }}    # true if variable equals "active" (string comparison)
+{{ saver.cmp_neq("status", "active") }}   # true if variable does not equal "active"
+{{ saver.cmp_gt("counter", "10") }}       # true if variable is greater than 10 (numeric)
+{{ saver.cmp_lt("counter", "10") }}       # true if variable is less than 10
+{{ saver.cmp_gte("counter", "10") }}      # true if variable is greater than or equal to 10
+{{ saver.cmp_lte("counter", "10") }}      # true if variable is less than or equal to 10
+```
+
+### Elapsed time
+
+Returns the number of seconds elapsed since the datetime stored in a variable. The variable must contain a parseable time or datetime value (e.g. set via `use_current_time: true`). When using full datetime values, elapsed time works correctly across days.
+
+```yaml
+{{ saver.time_elapsed("timer_start") }}                       # seconds since the stored time
+{{ saver.time_elapsed("timer_start") > 3600 }}                # true if more than 1 hour has passed
+```
+
+### Legacy functions
+
+The previous `saver_variable` and `saver_entity` functions are still available for backwards compatibility:
+```yaml
+{{ saver_variable("counter") }}
+{{ saver_entity("sun.sun") }}
+{{ saver_entity("sun.sun", "azimuth") }}
+```
+
+## Automation Conditions
+
+Saver provides custom automation conditions that appear in the Home Assistant automation UI. These mirror the template comparison functions and can be added visually.
+
+### Time elapsed
+
+Check if the elapsed time since a stored datetime variable exceeds or falls below a threshold (in seconds). At least one of `above` or `below` must be set. If both are set, both must be satisfied (range check).
+
+```yaml
+condition: saver.time_elapsed
+options:
+  variable: timer_start
+  above: 1800          # more than 30 minutes ago
+```
+
+```yaml
+condition: saver.time_elapsed
+options:
+  variable: timer_start
+  above: 60
+  below: 3600          # between 1 minute and 1 hour
+```
+
+### Compare value
+
+Compare a stored variable against a value. Available operators: `eq`, `neq`, `gt`, `lt`, `gte`, `lte`. Numeric operators (`gt`, `lt`, `gte`, `lte`) convert both sides to numbers.
+
+```yaml
+condition: saver.compare_value
+options:
+  variable: counter
+  comparison: gt
+  value: "10"
+```
+
+### Compare time
+
+Compare a stored datetime variable against another time or the current time. Available comparisons: `after`, `before`, `after_now`. For `after` and `before`, a `compare_to` value is required (supports `HH:MM`, `HH:MM:SS`, or ISO-8601 datetime).
+
+```yaml
+condition: saver.compare_time
+options:
+  variable: timer_start
+  comparison: after_now
+```
+
+```yaml
+condition: saver.compare_time
+options:
+  variable: timer_start
+  comparison: after
+  compare_to: "12:05:00"
 ```
 
 ## Events

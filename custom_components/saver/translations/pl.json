@@ -8,5 +8,61 @@
                 "description": "Czy chcesz skonfigurowa\u0107 Saver?"
             }
         }
+    },
+    "conditions": {
+        "time_elapsed": {
+            "name": "Czas, kt\u00f3ry up\u0142yn\u0105\u0142",
+            "description": "Sprawd\u017a, czy czas od zapisanej zmiennej przekracza lub jest mniejszy ni\u017c pr\u00f3g",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver zawieraj\u0105cej warto\u015b\u0107 daty i czasu"
+                },
+                "above": {
+                    "name": "Powy\u017cej (sekundy)",
+                    "description": "Prawda, je\u015bli up\u0142yn\u0105\u0142 czas wi\u0119kszy ni\u017c ta warto\u015b\u0107 w sekundach"
+                },
+                "below": {
+                    "name": "Poni\u017cej (sekundy)",
+                    "description": "Prawda, je\u015bli up\u0142yn\u0105\u0142 czas mniejszy ni\u017c ta warto\u015b\u0107 w sekundach"
+                }
+            }
+        },
+        "compare_value": {
+            "name": "Por\u00f3wnaj warto\u015b\u0107",
+            "description": "Por\u00f3wnaj zapisan\u0105 zmienn\u0105 z warto\u015bci\u0105",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver do por\u00f3wnania"
+                },
+                "comparison": {
+                    "name": "Por\u00f3wnanie",
+                    "description": "Rodzaj por\u00f3wnania"
+                },
+                "value": {
+                    "name": "Warto\u015b\u0107",
+                    "description": "Warto\u015b\u0107, z kt\u00f3r\u0105 por\u00f3wnujemy zmienn\u0105"
+                }
+            }
+        },
+        "compare_time": {
+            "name": "Por\u00f3wnaj czas",
+            "description": "Por\u00f3wnaj zapisan\u0105 dat\u0119/czas z innym czasem lub aktualnym czasem",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver zawieraj\u0105cej warto\u015b\u0107 daty i czasu"
+                },
+                "comparison": {
+                    "name": "Por\u00f3wnanie",
+                    "description": "Rodzaj por\u00f3wnania czasu"
+                },
+                "compare_to": {
+                    "name": "Por\u00f3wnaj z",
+                    "description": "Czas lub data do por\u00f3wnania (nie wymagane dla 'Po aktualnym czasie')"
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,18 @@
+{
+    "conditions": {
+        "time_elapsed": {
+            "condition": "mdi:timer-outline"
+        },
+        "compare_value": {
+            "condition": "mdi:scale-balance"
+        },
+        "compare_time": {
+            "condition": "mdi:clock-check-outline"
+        }
+    },
+    "triggers": {
+        "compare_time": {
+            "trigger": "mdi:clock-start"
+        }
+    }
+}
