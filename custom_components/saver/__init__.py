@@ -1,15 +1,21 @@
 import json
 import logging
 import regex
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Callable
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_component import EntityComponent
-from homeassistant.helpers.template import _get_state_if_valid, Template, TemplateEnvironment
+from homeassistant.helpers.template import Template, TemplateEnvironment
 from homeassistant.util import dt as dt_util
+try:
+    from homeassistant.helpers.template.states import _get_state_if_valid
+except ImportError:
+    # For HA before 2026.5
+    from homeassistant.helpers.template import _get_state_if_valid
+
 
 from .const import *
 
