@@ -2,42 +2,44 @@
 import logging
 
 import voluptuous as vol
-from homeassistant.const import CONF_CONDITION, CONF_OPTIONS
+from homeassistant.const import CONF_OPTIONS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.condition import Condition, ConditionChecker
-from homeassistant.helpers.config_validation import CONDITION_BASE_SCHEMA
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import (
     CONF_VARIABLE, CONF_COMPARISON, CONF_COMPARE_TO, DOMAIN,
     CMP_TIME_AFTER, CMP_TIME_BEFORE, CMP_TIME_AFTER_NOW,
 )
-from .const import CONF_CONDITION_NAME_COMPARE_TIME
 
 _LOGGER = logging.getLogger(__name__)
 
-CONDITION_SCHEMA = vol.Schema(
-    {
-        **CONDITION_BASE_SCHEMA,
-        vol.Required(CONF_CONDITION): f"{DOMAIN}.{CONF_CONDITION_NAME_COMPARE_TIME}",
-        vol.Required(CONF_OPTIONS): vol.Schema({
-            vol.Required(CONF_VARIABLE): cv.string,
-            vol.Required(CONF_COMPARISON): vol.In([CMP_TIME_AFTER, CMP_TIME_BEFORE, CMP_TIME_AFTER_NOW]),
-            vol.Optional(CONF_COMPARE_TO): cv.string,
-        }),
-    }
-)
 
-
-def _validate_compare_to(config: dict) -> dict:
+def _validate_compare_to_options(options: dict) -> dict:
     """Ensure compare_to is present when comparison is not after_now."""
-    options = config.get(CONF_OPTIONS, {})
     comparison = options.get(CONF_COMPARISON)
     if comparison != CMP_TIME_AFTER_NOW and CONF_COMPARE_TO not in options:
         raise vol.Invalid(f"'compare_to' is required when comparison is '{comparison}'")
-    return config
+    return options
 
+
+CONDITION_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_OPTIONS): vol.All(
+            vol.Schema(
+                {
+                    vol.Required(CONF_VARIABLE): cv.string,
+                    vol.Required(CONF_COMPARISON): vol.In(
+                        [CMP_TIME_AFTER, CMP_TIME_BEFORE, CMP_TIME_AFTER_NOW]
+                    ),
+                    vol.Optional(CONF_COMPARE_TO): cv.string,
+                }
+            ),
+            _validate_compare_to_options,
+        ),
+    }
+)
 
 class CompareTimeCondition(Condition):
     """Compare a stored datetime variable against another time or the current time."""
@@ -51,12 +53,7 @@ class CompareTimeCondition(Condition):
 
     @classmethod
     async def async_validate_config(cls, hass: HomeAssistant, config: ConfigType) -> ConfigType:
-        validated = CONDITION_SCHEMA(config)
-        return _validate_compare_to(validated)
-
-    @classmethod
-    async def async_validate_complete_config(cls, hass: HomeAssistant, complete_config: ConfigType) -> ConfigType:
-        return await cls.async_validate_config(hass, complete_config)
+        return CONDITION_SCHEMA(config)
 
     async def async_get_checker(self) -> ConditionChecker:
         if isinstance(self.config, dict):
