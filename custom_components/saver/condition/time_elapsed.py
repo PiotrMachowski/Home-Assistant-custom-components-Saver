@@ -2,20 +2,22 @@
 import logging
 
 import voluptuous as vol
+from homeassistant.const import CONF_CONDITION, CONF_OPTIONS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.condition import Condition, ConditionChecker
+from homeassistant.helpers.config_validation import CONDITION_BASE_SCHEMA
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import CONF_VARIABLE, CONF_ABOVE, CONF_BELOW, DOMAIN
+from .const import CONF_CONDITION_NAME_TIME_ELAPSED
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_OPTIONS = "options"
-
 CONDITION_SCHEMA = vol.Schema(
     {
-        vol.Required("condition"): cv.string,
+        **CONDITION_BASE_SCHEMA,
+        vol.Required(CONF_CONDITION): f"{DOMAIN}.{CONF_CONDITION_NAME_TIME_ELAPSED}",
         vol.Required(CONF_OPTIONS): vol.All(
             vol.Schema({
                 vol.Required(CONF_VARIABLE): cv.string,
@@ -24,8 +26,6 @@ CONDITION_SCHEMA = vol.Schema(
             }),
             cv.has_at_least_one_key(CONF_ABOVE, CONF_BELOW),
         ),
-        vol.Optional("alias"): cv.string,
-        vol.Optional("enabled"): cv.boolean,
     }
 )
 
