@@ -99,5 +99,102 @@
                 "after_now": "Po aktualnym czasie"
             }
         }
+    },
+    "services": {
+        "clear": {
+            "name": "Wyczyść dane",
+            "description": "Czyści wszystkie zapisane wartości."
+        },
+        "delete": {
+            "name": "Usuń encję",
+            "description": "Usuwa zapisany stan encji.",
+            "fields": {
+                "entity_id": {
+                    "name": "Encja",
+                    "description": "Encja, której zapisany stan powinien zostać usunięty."
+                }
+            }
+        },
+        "delete_regex": {
+            "name": "Usuń encje używając wyrażenia regularnego",
+            "description": "Usuwa zapisane stany dla wszystkich encji, których identyfikatory pasują do podanego wyrażenia regularnego.",
+            "fields": {
+                "entity_id_regex": {
+                    "name": "Wyrażenie regularne",
+                    "description": "Wyrażenie regularne, które będzie użyte do usunięcia stanów encji."
+                }
+            }
+        },
+        "delete_variable": {
+            "name": "Usuń zmienną",
+            "description": "Usuwa zapisaną zmienną.",
+            "fields": {
+                "name": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej, której wartość powinna zostać usunięta."
+                }
+            }
+        },
+        "delete_variable_regex": {
+            "name": "Usuń zmienne używając wyrażenia regularnego",
+            "description": "Usuwa zapisane stany dla wszystkich zmiennych, które pasują do podanego wyrażenia regularnego.",
+            "fields": {
+                "regex": {
+                    "name": "Wyrażenie regularne",
+                    "description": "Wyrażenie regularne, które będzie użyte do usunięcia zmiennych."
+                }
+            }
+        },
+        "set_variable": {
+            "name": "Ustaw zmienną",
+            "description": "Sets a variable to a manual value, an entity state, or the current timestamp.\nOnly one of \"Value\", \"Entity\" or \"Use current time\" can be used.",
+            "description": "Zapisuje w zmiennej ręcznie podaną wartość, stan encji, bądź aktualny czas.\nTylko jedna z pozycji \"Wartość\", \"Encja\" bądź \"Aktualny czas\" może zostać użyta.",
+            "fields": {
+                "name": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej, której wartość zostanie ustawiona."
+                },
+                "value": {
+                    "name": "Wartość",
+                    "description": "Wartość, która ma zostać zapisana w zmiennej.\nNie można użyć jednocześnie z \"Encja\", ani \"Aktualny czas\"."
+                },
+                "value_entity": {
+                    "name": "Encja",
+                    "description": "Encja, której aktualny stan (bez atrybutów) ma zostać zapisany w zmiennej.\nNie można użyć jednocześnie z \"Zmienna\", ani \"Aktualny czas\"."
+                },
+                "use_current_time": {
+                    "name": "Aktualny czas",
+                    "description": "Zapisuje w zmiennej aktualny czas i datę (w formacie ISO-8601).\nPozwala na porównywanie czasu pomiędzy dniami (>24h).\nNie można użyć jednocześnie z \"Zmienna\", ani \"Encja\"."
+                }
+            }
+        },
+        "save_state": {
+            "name": "Zapisz stan",
+            "description": "Zapisuje aktualny stan wybranych encji (wraz z atrybutami).",
+            "fields": {
+                "entity_id": {
+                    "name": "Encja (encje)",
+                    "description": "Encja (encje), których aktualny stan ma zostać zapisany."
+                }
+            }
+        },
+        "restore_state": {
+            "name": "Przywróć stan",
+            "description": "Przywraca wybrane encje do zapisanego wcześniej stanu.",
+            "fields": {
+                "entity_id": {
+                    "name": "Encja (encje)",
+                    "description": "Encja (encje), których stany powinny zostać przywrócone."
+                },
+                "delete_after_run": {
+                    "name": "Usuń po przywróceniu",
+                    "description": "Usuwa zapisane encje po przywróceniu ich stanu. Domyśnie włączone."
+                },
+                "transition": {
+                    "name": "Przejście",
+                    "description": "Czas potrzebny na przejście do następnego stanu (dotyczy tylko encji świateł)."
+                }
+            }
+        }
     }
 }
