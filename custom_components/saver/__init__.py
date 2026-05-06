@@ -325,6 +325,7 @@ def setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
 
 
 class SaverEntity(RestoreEntity):
+    _attr_translation_key: str = DOMAIN
 
     def __init__(self) -> None:
         self._entities_db = {}

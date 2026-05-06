@@ -1,4 +1,11 @@
 {
+    "entity": {
+        "saver": {
+            "saver": {
+                "default": "mdi:content-save"
+            }
+        }
+    },
     "conditions": {
         "time_elapsed": {
             "condition": "mdi:timer-outline"
