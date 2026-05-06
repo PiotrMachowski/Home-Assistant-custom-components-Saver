@@ -1,16 +1,8 @@
 clear:
-  name: Clear storage
-  description: >
-    Deletes all saved data.
 
 delete:
-  name: Delete entity
-  description: >
-    Deletes a saved state for an entity.
   fields:
     entity_id:
-      name: Entity
-      description: ID of entity to delete from saver.
       example: sun.sun
       required: true
       selector:
@@ -18,72 +10,54 @@ delete:
           multiple: true
 
 delete_regex:
-  name: Delete entities by regex
-  description: >
-    Deletes a saved state for all entities that match provided regex.
   fields:
     entity_id_regex:
-      name: Regex
-      description: Regex that should be used to delete entities from saver.
       example: light.living_room.*
       required: true
       selector:
         text:
 
 delete_variable:
-  name: Delete variable
-  description: >
-    Deletes a saved variable.
   fields:
     name:
-      name: Variable
-      description: Name of the variable to delete from saver.
       example: counter
       required: true
       selector:
         text:
 
 delete_variable_regex:
-  name: Delete variables by regex
-  description: >
-    Deletes saved variables by regex.
   fields:
     regex:
-      name: Regex
-      description: Regex that should be used to delete variables from saver.
       example: counter_.*
       required: true
       selector:
         text:
 
 set_variable:
-  name: Set variable
-  description: >
-    Sets the value to the variable.
   fields:
     name:
-      name: Variable
-      description: Name of the variable to be set.
       example: counter
       required: true
       selector:
         text:
     value:
-      name: Value
-      description: The new value
-      example: 3
-      required: true
+      example: "3"
+      required: false
       selector:
         text:
+    value_entity:
+      required: false
+      selector:
+        entity:
+    use_current_time:
+      default: false
+      required: false
+      selector:
+        boolean:
 
 save_state:
-  name: Save state
-  description: >
-    Saves the state and parameters of the entity.
   fields:
     entity_id:
-      name: Entity
-      description: ID of the entity that should be saved.
       example: sun.sun
       required: true
       selector:
@@ -91,30 +65,23 @@ save_state:
           multiple: true
 
 restore_state:
-  name: Restore states
-  description: >
-    Restores saved states of entities.
   fields:
     entity_id:
-      name: Entity
-      description: ID of the entity that should be saved.
       example: sun.sun
       required: true
       selector:
         entity:
           multiple: true
     delete_after_run:
-      name: Delete after run
-      description: "Deletes the saved state after an execution of the script. Default: true [Optional]"
       example: false
+      default: true
+      required: false
       selector:
         boolean:
     transition:
-      name: Transition
-      description: "Transition that should be used during state restoring (only for light entities)"
       required: false
       selector:
         number:
           min: 0
           max: 300
-          unit_of_measurement: seconds
+          unit_of_measurement: s

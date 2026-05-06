@@ -1,0 +1,51 @@
+{
+    "entity": {
+        "saver": {
+            "saver": {
+                "default": "mdi:content-save"
+            }
+        }
+    },
+    "conditions": {
+        "time_elapsed": {
+            "condition": "mdi:timer-outline"
+        },
+        "compare_value": {
+            "condition": "mdi:scale-balance"
+        },
+        "compare_time": {
+            "condition": "mdi:clock-check-outline"
+        }
+    },
+    "triggers": {
+        "compare_time": {
+            "trigger": "mdi:clock-start"
+        }
+    },
+    "services": {
+        "clear": {
+            "service": "mdi:delete-alert"
+        },
+        "delete": {
+            "service": "mdi:delete"
+        },
+        "delete_regex": {
+            "service": "mdi:delete-sweep"
+        },
+        "delete_variable": {
+            "service": "mdi:delete-outline"
+        },
+        "delete_variable_regex": {
+            "service": "mdi:delete-sweep-outline"
+        },
+        "set_variable": {
+            "service": "mdi:content-save-outline"
+        },
+        "save_state": {
+            "service": "mdi:content-save-all"
+        },
+        "restore_state": {
+            "service": "mdi:restore"
+        }
+    }
+}

@@ -1,0 +1,60 @@
+time_elapsed:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    above:
+      selector:
+        number:
+          min: 0
+          step: 1
+          unit_of_measurement: s
+    below:
+      selector:
+        number:
+          min: 0
+          step: 1
+          unit_of_measurement: s
+
+compare_value:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    comparison:
+      required: true
+      selector:
+        select:
+          translation_key: condition_compare_value_comparison
+          options:
+            - "eq"
+            - "neq"
+            - "gt"
+            - "lt"
+            - "gte"
+            - "lte"
+    value:
+      required: true
+      selector:
+        text:
+
+compare_time:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    comparison:
+      required: true
+      selector:
+        select:
+          translation_key: condition_compare_time_comparison
+          options:
+            - "after"
+            - "before"
+            - "after_now"
+    compare_to:
+      selector:
+        text:

@@ -8,5 +8,192 @@
                 "description": "Do you want to configure the Saver?"
             }
         }
+    },
+    "conditions": {
+        "time_elapsed": {
+            "name": "Saver: Time elapsed",
+            "description": "Check if elapsed time since a stored variable exceeds or falls below a threshold",
+            "fields": {
+                "variable": {
+                    "name": "Variable",
+                    "description": "Name of the Saver variable containing a datetime value"
+                },
+                "above": {
+                    "name": "Above (seconds)",
+                    "description": "True if elapsed time is greater than this value in seconds"
+                },
+                "below": {
+                    "name": "Below (seconds)",
+                    "description": "True if elapsed time is less than this value in seconds"
+                }
+            }
+        },
+        "compare_value": {
+            "name": "Saver: Compare value",
+            "description": "Compare a stored variable against a value",
+            "fields": {
+                "variable": {
+                    "name": "Variable",
+                    "description": "Name of the Saver variable to compare"
+                },
+                "comparison": {
+                    "name": "Comparison",
+                    "description": "Type of comparison to perform"
+                },
+                "value": {
+                    "name": "Value",
+                    "description": "Value to compare the variable against"
+                }
+            }
+        },
+        "compare_time": {
+            "name": "Saver: Compare time",
+            "description": "Compare a stored datetime variable against another time or the current time",
+            "fields": {
+                "variable": {
+                    "name": "Variable",
+                    "description": "Name of the Saver variable containing a datetime value"
+                },
+                "comparison": {
+                    "name": "Comparison",
+                    "description": "Type of time comparison to perform"
+                },
+                "compare_to": {
+                    "name": "Compare to",
+                    "description": "Time or datetime to compare against (not needed for 'After current time')"
+                }
+            }
+        }
+    },
+    "triggers": {
+        "compare_time": {
+            "name": "Saver: Variable time reached",
+            "description": "Fires when the time or datetime stored in a Saver variable is reached. Re-schedules automatically when the variable changes.",
+            "fields": {
+                "variable": {
+                    "name": "Variable",
+                    "description": "Name of the Saver variable containing a time (HH:MM[:SS]) or ISO datetime value"
+                },
+                "offset": {
+                    "name": "Offset (seconds)",
+                    "description": "Optional offset in seconds applied to the stored time. Negative values fire before, positive after."
+                }
+            }
+        }
+    },
+    "selector": {
+        "condition_compare_value_comparison": {
+            "options": {
+                "eq": "Equal",
+                "neq": "Not equal",
+                "gt": "Greater than",
+                "lt": "Less than",
+                "gte": "Greater than or equal",
+                "lte": "Less than or equal"
+            }
+        },
+        "condition_compare_time_comparison": {
+            "options": {
+                "after": "After",
+                "before": "Before",
+                "after_now": "After current time"
+            }
+        }
+    },
+    "services": {
+        "clear": {
+            "name": "Clear storage",
+            "description": "Deletes all saved data."
+        },
+        "delete": {
+            "name": "Delete entity",
+            "description": "Deletes a saved state for an entity.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "ID of entity to delete from Saver."
+                }
+            }
+        },
+        "delete_regex": {
+            "name": "Delete entities by regex",
+            "description": "Deletes a saved state for all entities that match provided regex.",
+            "fields": {
+                "entity_id_regex": {
+                    "name": "Regex",
+                    "description": "Regex that should be used to delete entities from Saver."
+                }
+            }
+        },
+        "delete_variable": {
+            "name": "Delete variable",
+            "description": "Deletes a saved variable.",
+            "fields": {
+                "name": {
+                    "name": "Variable",
+                    "description": "Name of the variable to delete from Saver."
+                }
+            }
+        },
+        "delete_variable_regex": {
+            "name": "Delete variables by regex",
+            "description": "Deletes saved variables by regex.",
+            "fields": {
+                "regex": {
+                    "name": "Regex",
+                    "description": "Regex that should be used to delete variables from Saver."
+                }
+            }
+        },
+        "set_variable": {
+            "name": "Set variable",
+            "description": "Sets a variable to a manual value, an entity state, or the current timestamp.\n Only one of \"Value\", \"Entity\" or \"Use current time\" can be used.",
+            "fields": {
+                "name": {
+                    "name": "Variable",
+                    "description": "Name of the variable to be set."
+                },
+                "value": {
+                    "name": "Value",
+                    "description": "A manual value to set.\nCannot be combined with \"Entity\" or \"Use current time\"."
+                },
+                "value_entity": {
+                    "name": "Entity",
+                    "description": "An entity whose current state will be used as the value.\nCannot be combined with \"Value\" or \"Use current time\"."
+                },
+                "use_current_time": {
+                    "name": "Use current time",
+                    "description": "Sets the variable to the current date and time (ISO-8601 format).\nEnables time comparisons across days (>24h).\nCannot be combined with \"Value\" or \"Entity\"."
+                }
+            }
+        },
+        "save_state": {
+            "name": "Save state",
+            "description": "Saves the state and parameters of the entity.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "ID of the entity (entities) that should be saved."
+                }
+            }
+        },
+        "restore_state": {
+            "name": "Restore states",
+            "description": "Restores saved states of entities.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "ID of the entity (entities) that should be restored."
+                },
+                "delete_after_run": {
+                    "name": "Delete after run",
+                    "description": "Deletes the saved state after its restoration. Default: true [Optional]"
+                },
+                "transition": {
+                    "name": "Transition",
+                    "description": "Transition that should be used during state restoring (applicable only for light entities)."
+                }
+            }
+        }
     }
 }

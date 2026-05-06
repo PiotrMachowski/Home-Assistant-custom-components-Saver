@@ -1,11 +1,199 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Saver jest ju\u017c skonfigurowany."
+            "already_configured": "Saver jest już skonfigurowany."
         },
         "step": {
             "user": {
-                "description": "Czy chcesz skonfigurowa\u0107 Saver?"
+                "description": "Czy chcesz skonfigurować Saver?"
+            }
+        }
+    },
+    "conditions": {
+        "time_elapsed": {
+            "name": "Saver: Czas, który upłynął",
+            "description": "Sprawdź, czy czas od zapisanej zmiennej przekracza lub jest mniejszy niż próg",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver zawierającej wartość daty i czasu"
+                },
+                "above": {
+                    "name": "Powyżej (sekundy)",
+                    "description": "Czy upłynęło więcej czasu, niż podana wartość w sekundach"
+                },
+                "below": {
+                    "name": "Poniżej (sekundy)",
+                    "description": "Czy upłynęło mniej czasu, niż podana wartość w sekundach"
+                }
+            }
+        },
+        "compare_value": {
+            "name": "Saver: Porównaj wartość",
+            "description": "Porównaj zapisaną zmienną z wartością",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver do porównania"
+                },
+                "comparison": {
+                    "name": "Porównanie",
+                    "description": "Rodzaj porównania"
+                },
+                "value": {
+                    "name": "Wartość",
+                    "description": "Wartość do porównania ze zmienną"
+                }
+            }
+        },
+        "compare_time": {
+            "name": "Saver: Porównaj czas",
+            "description": "Porównaj zapisaną datę/czas z innym, bądź aktualnym czasem",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver zawierającej wartość daty i czasu"
+                },
+                "comparison": {
+                    "name": "Porównanie",
+                    "description": "Rodzaj porównania czasu"
+                },
+                "compare_to": {
+                    "name": "Porównaj z",
+                    "description": "Czas lub data do porównania (nie wymagane dla 'Po aktualnym czasie')"
+                }
+            }
+        }
+    },
+    "triggers": {
+        "compare_time": {
+            "name": "Saver: Osiągnięto czas zmiennej",
+            "description": "Wyzwalany, jeśli czas bądź data zapisane w zmiennej Saver zostaną osiągnięte. Odnawiany automatycznie po zmianie zmiennej.",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver zawierającej czas (HH:MM[:SS]), bądź datę"
+                },
+                "offset": {
+                    "name": "Przesunięcie (sekundy)",
+                    "description": "Przesunięcie wyzwolenia względem zapisanego czasu. (opcjonalne)"
+                }
+            }
+        }
+    },
+    "selector": {
+        "condition_compare_value_comparison": {
+            "options": {
+                "eq": "Równa",
+                "neq": "Nie jest równa",
+                "gt": "Większa niż",
+                "lt": "Mniejsza niż",
+                "gte": "Większa, bądź równa",
+                "lte": "Mniejsza, bądź równa"
+            }
+        },
+        "condition_compare_time_comparison": {
+            "options": {
+                "after": "Po",
+                "before": "Przed",
+                "after_now": "Po aktualnym czasie"
+            }
+        }
+    },
+    "services": {
+        "clear": {
+            "name": "Wyczyść dane",
+            "description": "Czyści wszystkie zapisane wartości."
+        },
+        "delete": {
+            "name": "Usuń encję",
+            "description": "Usuwa zapisany stan encji.",
+            "fields": {
+                "entity_id": {
+                    "name": "Encja",
+                    "description": "Encja, której zapisany stan powinien zostać usunięty."
+                }
+            }
+        },
+        "delete_regex": {
+            "name": "Usuń encje używając wyrażenia regularnego",
+            "description": "Usuwa zapisane stany dla wszystkich encji, których identyfikatory pasują do podanego wyrażenia regularnego.",
+            "fields": {
+                "entity_id_regex": {
+                    "name": "Wyrażenie regularne",
+                    "description": "Wyrażenie regularne, które będzie użyte do usunięcia stanów encji."
+                }
+            }
+        },
+        "delete_variable": {
+            "name": "Usuń zmienną",
+            "description": "Usuwa zapisaną zmienną.",
+            "fields": {
+                "name": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej, której wartość powinna zostać usunięta."
+                }
+            }
+        },
+        "delete_variable_regex": {
+            "name": "Usuń zmienne używając wyrażenia regularnego",
+            "description": "Usuwa zapisane stany dla wszystkich zmiennych, które pasują do podanego wyrażenia regularnego.",
+            "fields": {
+                "regex": {
+                    "name": "Wyrażenie regularne",
+                    "description": "Wyrażenie regularne, które będzie użyte do usunięcia zmiennych."
+                }
+            }
+        },
+        "set_variable": {
+            "name": "Ustaw zmienną",
+            "description": "Sets a variable to a manual value, an entity state, or the current timestamp.\nOnly one of \"Value\", \"Entity\" or \"Use current time\" can be used.",
+            "description": "Zapisuje w zmiennej ręcznie podaną wartość, stan encji, bądź aktualny czas.\nTylko jedna z pozycji \"Wartość\", \"Encja\" bądź \"Aktualny czas\" może zostać użyta.",
+            "fields": {
+                "name": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej, której wartość zostanie ustawiona."
+                },
+                "value": {
+                    "name": "Wartość",
+                    "description": "Wartość, która ma zostać zapisana w zmiennej.\nNie można użyć jednocześnie z \"Encja\", ani \"Aktualny czas\"."
+                },
+                "value_entity": {
+                    "name": "Encja",
+                    "description": "Encja, której aktualny stan (bez atrybutów) ma zostać zapisany w zmiennej.\nNie można użyć jednocześnie z \"Zmienna\", ani \"Aktualny czas\"."
+                },
+                "use_current_time": {
+                    "name": "Aktualny czas",
+                    "description": "Zapisuje w zmiennej aktualny czas i datę (w formacie ISO-8601).\nPozwala na porównywanie czasu pomiędzy dniami (>24h).\nNie można użyć jednocześnie z \"Zmienna\", ani \"Encja\"."
+                }
+            }
+        },
+        "save_state": {
+            "name": "Zapisz stan",
+            "description": "Zapisuje aktualny stan wybranych encji (wraz z atrybutami).",
+            "fields": {
+                "entity_id": {
+                    "name": "Encja (encje)",
+                    "description": "Encja (encje), których aktualny stan ma zostać zapisany."
+                }
+            }
+        },
+        "restore_state": {
+            "name": "Przywróć stan",
+            "description": "Przywraca wybrane encje do zapisanego wcześniej stanu.",
+            "fields": {
+                "entity_id": {
+                    "name": "Encja (encje)",
+                    "description": "Encja (encje), których stany powinny zostać przywrócone."
+                },
+                "delete_after_run": {
+                    "name": "Usuń po przywróceniu",
+                    "description": "Usuwa zapisane encje po przywróceniu ich stanu. Domyśnie włączone."
+                },
+                "transition": {
+                    "name": "Przejście",
+                    "description": "Czas potrzebny na przejście do następnego stanu (dotyczy tylko encji świateł)."
+                }
             }
         }
     }

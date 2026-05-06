@@ -1,0 +1,13 @@
+compare_time:
+  fields:
+    variable:
+      required: true
+      selector:
+        text:
+    offset:
+      selector:
+        number:
+          min: -86400
+          max: 86400
+          step: 1
+          unit_of_measurement: s
