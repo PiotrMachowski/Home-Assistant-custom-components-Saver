@@ -11,57 +11,92 @@
     },
     "conditions": {
         "time_elapsed": {
-            "name": "Czas, kt\u00f3ry up\u0142yn\u0105\u0142",
-            "description": "Sprawd\u017a, czy czas od zapisanej zmiennej przekracza lub jest mniejszy ni\u017c pr\u00f3g",
+            "name": "Saver: Czas, który upłynął",
+            "description": "Sprawdź, czy czas od zapisanej zmiennej przekracza lub jest mniejszy niż próg",
             "fields": {
                 "variable": {
                     "name": "Zmienna",
-                    "description": "Nazwa zmiennej Saver zawieraj\u0105cej warto\u015b\u0107 daty i czasu"
+                    "description": "Nazwa zmiennej Saver zawierającej wartość daty i czasu"
                 },
                 "above": {
-                    "name": "Powy\u017cej (sekundy)",
-                    "description": "Prawda, je\u015bli up\u0142yn\u0105\u0142 czas wi\u0119kszy ni\u017c ta warto\u015b\u0107 w sekundach"
+                    "name": "Powyżej (sekundy)",
+                    "description": "Czy upłynęło więcej czasu, niż podana wartość w sekundach"
                 },
                 "below": {
-                    "name": "Poni\u017cej (sekundy)",
-                    "description": "Prawda, je\u015bli up\u0142yn\u0105\u0142 czas mniejszy ni\u017c ta warto\u015b\u0107 w sekundach"
+                    "name": "Poniżej (sekundy)",
+                    "description": "Czy upłynęło mniej czasu, niż podana wartość w sekundach"
                 }
             }
         },
         "compare_value": {
-            "name": "Por\u00f3wnaj warto\u015b\u0107",
-            "description": "Por\u00f3wnaj zapisan\u0105 zmienn\u0105 z warto\u015bci\u0105",
+            "name": "Saver: Porównaj wartość",
+            "description": "Porównaj zapisaną zmienną z wartością",
             "fields": {
                 "variable": {
                     "name": "Zmienna",
-                    "description": "Nazwa zmiennej Saver do por\u00f3wnania"
+                    "description": "Nazwa zmiennej Saver do porównania"
                 },
                 "comparison": {
-                    "name": "Por\u00f3wnanie",
-                    "description": "Rodzaj por\u00f3wnania"
+                    "name": "Porównanie",
+                    "description": "Rodzaj porównania"
                 },
                 "value": {
-                    "name": "Warto\u015b\u0107",
-                    "description": "Warto\u015b\u0107, z kt\u00f3r\u0105 por\u00f3wnujemy zmienn\u0105"
+                    "name": "Wartość",
+                    "description": "Wartość do porównania ze zmienną"
                 }
             }
         },
         "compare_time": {
-            "name": "Por\u00f3wnaj czas",
-            "description": "Por\u00f3wnaj zapisan\u0105 dat\u0119/czas z innym czasem lub aktualnym czasem",
+            "name": "Saver: Porównaj czas",
+            "description": "Porównaj zapisaną datę/czas z innym, bądź aktualnym czasem",
             "fields": {
                 "variable": {
                     "name": "Zmienna",
-                    "description": "Nazwa zmiennej Saver zawieraj\u0105cej warto\u015b\u0107 daty i czasu"
+                    "description": "Nazwa zmiennej Saver zawierającej wartość daty i czasu"
                 },
                 "comparison": {
-                    "name": "Por\u00f3wnanie",
-                    "description": "Rodzaj por\u00f3wnania czasu"
+                    "name": "Porównanie",
+                    "description": "Rodzaj porównania czasu"
                 },
                 "compare_to": {
-                    "name": "Por\u00f3wnaj z",
-                    "description": "Czas lub data do por\u00f3wnania (nie wymagane dla 'Po aktualnym czasie')"
+                    "name": "Porównaj z",
+                    "description": "Czas lub data do porównania (nie wymagane dla 'Po aktualnym czasie')"
                 }
+            }
+        }
+    },
+    "triggers": {
+        "compare_time": {
+            "name": "Saver: Osiągnięto czas zmiennej",
+            "description": "Wyzwalany, jeśli czas bądź data zapisane w zmiennej Saver zostaną osiągnięte. Odnawiany automatycznie po zmianie zmiennej.",
+            "fields": {
+                "variable": {
+                    "name": "Zmienna",
+                    "description": "Nazwa zmiennej Saver zawierającej czas (HH:MM[:SS]), bądź datę"
+                },
+                "offset": {
+                    "name": "Przesunięcie (sekundy)",
+                    "description": "Przesunięcie wyzwolenia względem zapisanego czasu. (opcjonalne)"
+                }
+            }
+        }
+    },
+    "selector": {
+        "condition_compare_value_comparison": {
+            "options": {
+                "eq": "Równa",
+                "neq": "Nie jest równa",
+                "gt": "Większa niż",
+                "lt": "Mniejsza niż",
+                "gte": "Większa, bądź równa",
+                "lte": "Mniejsza, bądź równa"
+            }
+        },
+        "condition_compare_time_comparison": {
+            "options": {
+                "after": "Po",
+                "before": "Przed",
+                "after_now": "Po aktualnym czasie"
             }
         }
     }

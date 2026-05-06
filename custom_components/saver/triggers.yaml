@@ -10,4 +10,4 @@ compare_time:
           min: -86400
           max: 86400
           step: 1
-          unit_of_measurement: seconds
+          unit_of_measurement: s
