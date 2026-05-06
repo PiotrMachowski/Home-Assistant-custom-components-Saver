@@ -1,11 +1,12 @@
 """Saver compare_value automation condition."""
+
 import logging
 
 import voluptuous as vol
 from homeassistant.const import CONF_OPTIONS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.condition import Condition, ConditionChecker
+from homeassistant.helpers.condition import Condition, ConditionChecker, ConditionConfig
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import (
@@ -38,7 +39,7 @@ _CMP_METHODS = {
 class CompareValueCondition(Condition):
     """Compare a stored variable against a value using standard operators."""
 
-    def __init__(self, hass: HomeAssistant, config: ConfigType) -> None:
+    def __init__(self, hass: HomeAssistant, config: ConditionConfig) -> None:
         try:
             super().__init__(hass, config)
         except Exception:

@@ -58,6 +58,7 @@ SERVICE_SAVE_STATE = 'save_state'
 SERVICE_SAVE_STATE_SCHEMA = vol.Schema({
     vol.Required(CONF_ENTITY_ID): cv.entity_ids
 })
+SERVICE_SET_VARIABLE = 'set_variable'
 
 # Condition-related constants
 CONF_VARIABLE = 'variable'
@@ -65,6 +66,10 @@ CONF_COMPARISON = 'comparison'
 CONF_COMPARE_TO = 'compare_to'
 CONF_ABOVE = 'above'
 CONF_BELOW = 'below'
+
+CONDITION_NAME_TIME_ELAPSED = "time_elapsed"
+CONDITION_NAME_COMPARE_VALUE = "compare_value"
+CONDITION_NAME_COMPARE_TIME = "compare_time"
 
 CMP_EQ = 'eq'
 CMP_NEQ = 'neq'
@@ -76,9 +81,6 @@ CMP_LTE = 'lte'
 CMP_TIME_AFTER = 'after'
 CMP_TIME_BEFORE = 'before'
 CMP_TIME_AFTER_NOW = 'after_now'
-
-SERVICE_SET_VARIABLE = 'set_variable'
-
 
 def _validate_set_variable(config):
     """Ensure exactly one of 'value', 'value_entity' or 'use_current_time' is provided."""

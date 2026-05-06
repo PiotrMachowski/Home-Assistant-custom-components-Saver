@@ -1,11 +1,12 @@
 """Saver time_elapsed automation condition."""
+
 import logging
 
 import voluptuous as vol
 from homeassistant.const import CONF_OPTIONS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.condition import Condition, ConditionChecker
+from homeassistant.helpers.condition import Condition, ConditionChecker, ConditionConfig
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import CONF_VARIABLE, CONF_ABOVE, CONF_BELOW, DOMAIN
@@ -29,7 +30,7 @@ CONDITION_SCHEMA = vol.Schema(
 class TimeElapsedCondition(Condition):
     """Check if elapsed time since a stored variable exceeds or falls below a threshold."""
 
-    def __init__(self, hass: HomeAssistant, config: ConfigType) -> None:
+    def __init__(self, hass: HomeAssistant, config: ConditionConfig) -> None:
         try:
             super().__init__(hass, config)
         except Exception:
