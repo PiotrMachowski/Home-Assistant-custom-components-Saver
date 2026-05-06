@@ -10,8 +10,13 @@ from homeassistant.helpers.condition import Condition, ConditionChecker, Conditi
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import (
-    CONF_VARIABLE, CONF_COMPARISON, CONF_COMPARE_TO, DOMAIN,
-    CMP_TIME_AFTER, CMP_TIME_BEFORE, CMP_TIME_AFTER_NOW,
+    CONF_VARIABLE,
+    CONF_COMPARISON,
+    CONF_COMPARE_TO,
+    CMP_TIME_AFTER,
+    CMP_TIME_BEFORE,
+    CMP_TIME_AFTER_NOW,
+    SAVER_ENTITY_ID,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,7 +70,7 @@ class CompareTimeCondition(Condition):
         def checker(**kwargs) -> bool:
             try:
                 from .. import SaverNamespace
-                ns = SaverNamespace(self._hass, f"{DOMAIN}.{DOMAIN}")
+                ns = SaverNamespace(self._hass, SAVER_ENTITY_ID)
                 variable = options.get(CONF_VARIABLE)
                 comparison = options.get(CONF_COMPARISON)
                 compare_to = options.get(CONF_COMPARE_TO)

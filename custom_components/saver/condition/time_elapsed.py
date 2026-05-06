@@ -9,7 +9,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.condition import Condition, ConditionChecker, ConditionConfig
 from homeassistant.helpers.typing import ConfigType
 
-from ..const import CONF_VARIABLE, CONF_ABOVE, CONF_BELOW, DOMAIN
+from ..const import CONF_VARIABLE, CONF_ABOVE, CONF_BELOW, SAVER_ENTITY_ID
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class TimeElapsedCondition(Condition):
         def checker(**kwargs) -> bool:
             try:
                 from .. import SaverNamespace
-                ns = SaverNamespace(self._hass, f"{DOMAIN}.{DOMAIN}")
+                ns = SaverNamespace(self._hass, SAVER_ENTITY_ID)
                 variable = options.get(CONF_VARIABLE)
                 elapsed = ns.time_elapsed(variable)
                 if elapsed is None:

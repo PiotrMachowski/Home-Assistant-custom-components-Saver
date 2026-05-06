@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import voluptuous as vol
+from homeassistant.const import CONF_OPTIONS
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import (
@@ -30,12 +31,11 @@ from homeassistant.helpers.trigger import Trigger, TriggerActionRunner, TriggerC
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
-from .const import CONF_VARIABLE, DOMAIN
+from .const import CONF_VARIABLE, SAVER_ENTITY_ID, ATTR_VARIABLES
 from .utils import parse_datetime_with_kind
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_OPTIONS = "options"
 CONF_OFFSET = "offset"
 
 OPTIONS_SCHEMA = vol.Schema(
@@ -72,7 +72,7 @@ class CompareTimeTrigger(Trigger):
         options: dict[str, Any] = dict(self._config.options or {})
         variable: str = options[CONF_VARIABLE]
         offset: float = float(options.get(CONF_OFFSET, 0) or 0)
-        saver_entity_id = f"{DOMAIN}.{DOMAIN}"
+        saver_entity_id = SAVER_ENTITY_ID
 
         unsub_point: list[CALLBACK_TYPE | None] = [None]
         last_target: list[datetime | None] = [None]
@@ -81,7 +81,7 @@ class CompareTimeTrigger(Trigger):
             state = hass.states.get(saver_entity_id)
             if state is None:
                 return None
-            variables = state.attributes.get("variables") or {}
+            variables = state.attributes.get(ATTR_VARIABLES) or {}
             return variables.get(variable)
 
         def _next_target() -> tuple[datetime | None, str | None]:

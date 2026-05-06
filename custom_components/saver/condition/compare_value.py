@@ -10,8 +10,16 @@ from homeassistant.helpers.condition import Condition, ConditionChecker, Conditi
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import (
-    CONF_VARIABLE, CONF_COMPARISON, CONF_VALUE, DOMAIN,
-    CMP_EQ, CMP_NEQ, CMP_GT, CMP_LT, CMP_GTE, CMP_LTE,
+    CONF_VARIABLE,
+    CONF_COMPARISON,
+    CONF_VALUE,
+    CMP_EQ,
+    CMP_NEQ,
+    CMP_GT,
+    CMP_LT,
+    CMP_GTE,
+    CMP_LTE,
+    SAVER_ENTITY_ID,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +67,7 @@ class CompareValueCondition(Condition):
         def checker(**kwargs) -> bool:
             try:
                 from .. import SaverNamespace
-                ns = SaverNamespace(self._hass, f"{DOMAIN}.{DOMAIN}")
+                ns = SaverNamespace(self._hass, SAVER_ENTITY_ID)
                 variable = options.get(CONF_VARIABLE)
                 comparison = options.get(CONF_COMPARISON)
                 value = options.get(CONF_VALUE)

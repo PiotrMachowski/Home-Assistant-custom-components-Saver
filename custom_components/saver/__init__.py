@@ -64,13 +64,13 @@ class SaverNamespace:
         saver_state = _get_state_if_valid(self._hass, self._entity_id)
         if saver_state is None:
             return None
-        return saver_state.attributes.get("variables")
+        return saver_state.attributes.get(ATTR_VARIABLES)
 
     def _get_entities(self) -> dict[str, Any] | None:
         saver_state = _get_state_if_valid(self._hass, self._entity_id)
         if saver_state is None:
             return None
-        return saver_state.attributes.get("entities")
+        return saver_state.attributes.get(ATTR_ENTITIES)
 
     # -- existing accessors --
 
@@ -213,11 +213,11 @@ def setup_templates(hass: HomeAssistant) -> None:
         return self.saver_original_is_safe_attribute(obj, attr, value)
 
     def patch_environment(env: TemplateEnvironment) -> None:
-        saver_ns = SaverNamespace(hass, f"{DOMAIN}.{DOMAIN}")
+        saver_ns = SaverNamespace(hass, SAVER_ENTITY_ID)
         env.globals["saver"] = saver_ns
         # Legacy aliases for backwards compatibility
-        env.globals["saver_variable"] = SaverVariableTemplate(hass, f"{DOMAIN}.{DOMAIN}")
-        env.globals["saver_entity"] = SaverEntityTemplate(hass, f"{DOMAIN}.{DOMAIN}")
+        env.globals["saver_variable"] = SaverVariableTemplate(hass, SAVER_ENTITY_ID)
+        env.globals["saver_entity"] = SaverEntityTemplate(hass, SAVER_ENTITY_ID)
 
     def patched_init(
         self: TemplateEnvironment,
@@ -330,7 +330,7 @@ class SaverEntity(RestoreEntity):
     def __init__(self) -> None:
         self._entities_db = {}
         self._variables_db = {}
-        self._attr_unique_id = f"{DOMAIN}.{DOMAIN}"
+        self._attr_unique_id = SAVER_ENTITY_ID
 
     @property
     def name(self) -> str:
@@ -404,8 +404,8 @@ class SaverEntity(RestoreEntity):
     @property
     def state_attributes(self) -> dict[str, Any]:
         return {
-            "entities": self._entities_db,
-            "variables": self._variables_db
+            ATTR_ENTITIES: self._entities_db,
+            ATTR_VARIABLES: self._variables_db
         }
 
     @property
@@ -417,11 +417,11 @@ class SaverEntity(RestoreEntity):
         if (
             state is not None
             and state.attributes is not None
-            and "variables" in state.attributes and not isinstance(state.attributes["entities"], list)
-            and "entities" in state.attributes and not isinstance(state.attributes["variables"], list)
+            and ATTR_VARIABLES in state.attributes and not isinstance(state.attributes[ATTR_VARIABLES], list)
+            and ATTR_ENTITIES in state.attributes and not isinstance(state.attributes[ATTR_ENTITIES], list)
         ):
-            self._variables_db = state.attributes["variables"]
-            self._entities_db = state.attributes["entities"]
+            self._variables_db = state.attributes[ATTR_VARIABLES]
+            self._entities_db = state.attributes[ATTR_ENTITIES]
 
     @staticmethod
     def convert_to_scene_params(saved_state: Any) -> dict[str, Any]:
