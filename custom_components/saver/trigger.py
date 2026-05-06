@@ -31,6 +31,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
 from .const import CONF_VARIABLE, DOMAIN
+from .utils import parse_datetime_with_kind
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,8 +68,6 @@ class CompareTimeTrigger(Trigger):
         self, run_action: TriggerActionRunner
     ) -> CALLBACK_TYPE:
         """Schedule a point-in-time callback and re-arm on variable changes."""
-        from . import _parse_datetime_with_kind  # lazy to avoid cycles
-
         hass = self._hass
         options: dict[str, Any] = dict(self._config.options or {})
         variable: str = options[CONF_VARIABLE]
@@ -89,7 +88,7 @@ class CompareTimeTrigger(Trigger):
             val = _variable_value()
             if val is None:
                 return None, None
-            dt, kind = _parse_datetime_with_kind(str(val))
+            dt, kind = parse_datetime_with_kind(str(val))
             if dt is None:
                 return None, None
             target = dt + timedelta(seconds=offset)

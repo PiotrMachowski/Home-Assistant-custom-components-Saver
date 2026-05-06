@@ -18,6 +18,7 @@ except ImportError:
 
 
 from .const import *
+from .utils import parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = SAVER_SCHEMA
@@ -50,35 +51,6 @@ async def async_setup_entry(hass, config_entry):
     result = await hass.async_add_executor_job(setup_entry, hass, config_entry)
     hass.data.setdefault(DOMAIN, {})["setup_done"] = True
     return result
-
-
-def _parse_datetime_with_kind(value: str) -> tuple[datetime | None, str | None]:
-    """Parse an ISO datetime, ISO date or HH:MM[:SS] time into a timezone-aware datetime.
-
-    Returns (datetime, kind) where kind is one of "datetime", "date", "time", or None.
-    Naive ISO datetimes are interpreted as **local** time (HA's configured timezone),
-    not UTC, since users typically store local timestamps.
-    """
-    local_tz = dt_util.DEFAULT_TIME_ZONE
-    dt = dt_util.parse_datetime(value)
-    if dt is not None:
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=local_tz)
-        return dt, "datetime"
-    d = dt_util.parse_date(value)
-    if d is not None:
-        return datetime(d.year, d.month, d.day, tzinfo=local_tz), "date"
-    t = dt_util.parse_time(value)
-    if t is not None:
-        today = dt_util.now().date()
-        return datetime.combine(today, t, tzinfo=local_tz), "time"
-    return None, None
-
-
-def _parse_datetime(value: str) -> datetime | None:
-    """Parse an ISO datetime, ISO date, or HH:MM[:SS] time into a timezone-aware datetime."""
-    dt, _ = _parse_datetime_with_kind(value)
-    return dt
 
 
 class SaverNamespace:
@@ -142,7 +114,7 @@ class SaverNamespace:
         val = self.variable(variable)
         if val is None:
             return None
-        var_dt = _parse_datetime(str(val))
+        var_dt = parse_datetime(str(val))
         if var_dt is None:
             return None
         return var_dt > dt_util.now()
@@ -151,8 +123,8 @@ class SaverNamespace:
         val = self.variable(variable)
         if val is None:
             return None, None
-        var_dt = _parse_datetime(str(val))
-        cmp_dt = _parse_datetime(compare_to)
+        var_dt = parse_datetime(str(val))
+        cmp_dt = parse_datetime(compare_to)
         return var_dt, cmp_dt
 
     # -- general comparisons --
@@ -177,7 +149,7 @@ class SaverNamespace:
     def cmp_lte(self, variable: str, value: str) -> bool | None:
         return self._numeric_cmp(variable, value, lambda a, b: a <= b)
 
-    def _numeric_cmp(self, variable: str, value: str, op: Callable) -> bool | None:
+    def _numeric_cmp(self, variable: str, value: str, op: Callable[[float, float], bool]) -> bool | None:
         val = self.variable(variable)
         if val is None:
             return None
@@ -193,7 +165,7 @@ class SaverNamespace:
         val = self.variable(variable)
         if val is None:
             return None
-        dt = _parse_datetime(str(val))
+        dt = parse_datetime(str(val))
         if dt is None:
             return None
         return (dt_util.now() - dt).total_seconds()
