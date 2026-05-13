@@ -1,12 +1,15 @@
 """Saver compare_time automation condition."""
 
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 import voluptuous as vol
 from homeassistant.const import CONF_OPTIONS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.condition import Condition, ConditionChecker, ConditionConfig
+from homeassistant.helpers.condition import Condition, ConditionConfig
 from homeassistant.helpers.typing import ConfigType
 
 from ..const import (
@@ -47,45 +50,44 @@ CONDITION_SCHEMA = vol.Schema(
     }
 )
 
+
 class CompareTimeCondition(Condition):
     """Compare a stored datetime variable against another time or the current time."""
 
     def __init__(self, hass: HomeAssistant, config: ConditionConfig) -> None:
-        try:
-            super().__init__(hass, config)
-        except Exception:
-            self._hass = hass
-        self.config = config
+        super().__init__(hass, config)
+        self._config = config
 
     @classmethod
-    async def async_validate_config(cls, hass: HomeAssistant, config: ConfigType) -> ConfigType:
+    async def async_validate_config(
+        cls, hass: HomeAssistant, config: ConfigType
+    ) -> ConfigType:
         return CONDITION_SCHEMA(config)
 
-    async def async_get_checker(self) -> ConditionChecker:
-        if isinstance(self.config, dict):
-            options = self.config.get(CONF_OPTIONS, {})
-        else:
-            options = self.config.options if hasattr(self.config, "options") else {}
+    def _options(self) -> dict[str, Any]:
+        if isinstance(self._config, dict):
+            return self._config.get(CONF_OPTIONS, {}) or {}
+        return getattr(self._config, "options", None) or {}
 
-        def checker(**kwargs) -> bool:
-            try:
-                from .. import SaverNamespace
-                ns = SaverNamespace(self._hass, SAVER_ENTITY_ID)
-                variable = options.get(CONF_VARIABLE)
-                comparison = options.get(CONF_COMPARISON)
-                compare_to = options.get(CONF_COMPARE_TO)
+    def _async_check(self, **kwargs: Any) -> bool | None:
+        try:
+            from .. import SaverNamespace
 
-                if comparison == CMP_TIME_AFTER_NOW:
-                    result = ns.cmp_time_after_now(variable)
-                elif comparison == CMP_TIME_AFTER:
-                    result = ns.cmp_time_after(variable, compare_to)
-                elif comparison == CMP_TIME_BEFORE:
-                    result = ns.cmp_time_before(variable, compare_to)
-                else:
-                    return False
-                return bool(result) if result is not None else False
-            except Exception as e:
-                _LOGGER.error("Error evaluating compare_time: %s", e, exc_info=True)
+            ns = SaverNamespace(self._hass, SAVER_ENTITY_ID)
+            options = self._options()
+            variable = options.get(CONF_VARIABLE)
+            comparison = options.get(CONF_COMPARISON)
+            compare_to = options.get(CONF_COMPARE_TO)
+
+            if comparison == CMP_TIME_AFTER_NOW:
+                result = ns.cmp_time_after_now(variable)
+            elif comparison == CMP_TIME_AFTER:
+                result = ns.cmp_time_after(variable, compare_to)
+            elif comparison == CMP_TIME_BEFORE:
+                result = ns.cmp_time_before(variable, compare_to)
+            else:
                 return False
-
-        return checker
+            return bool(result) if result is not None else False
+        except Exception as e:
+            _LOGGER.error("Error evaluating compare_time: %s", e, exc_info=True)
+            return False
