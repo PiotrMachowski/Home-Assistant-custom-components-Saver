@@ -111,3 +111,5 @@ CMP_LTE = "lte"
 CMP_TIME_AFTER = "after"
 CMP_TIME_BEFORE = "before"
 CMP_TIME_AFTER_NOW = "after_now"
+
+IGNORED_ATTRIBUTES = ["last_triggered"]
