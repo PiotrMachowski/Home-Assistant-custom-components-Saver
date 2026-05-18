@@ -429,7 +429,9 @@ class SaverEntity(RestoreEntity):
         attrs = saved_state["attributes"] if isinstance(saved_state, dict) else saved_state.attributes
         return {
             "state": state,
-            **{attr_key: json.loads(json.dumps(attr_val)) for attr_key, attr_val in attrs.items()},
+            **{
+                attr_key: json.loads(json.dumps(attr_val))
+                for attr_key, attr_val in attrs.items()
+                if attr_key not in IGNORED_ATTRIBUTES
+            },
         }
-
-
