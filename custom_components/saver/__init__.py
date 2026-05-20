@@ -432,6 +432,6 @@ class SaverEntity(RestoreEntity):
             **{
                 attr_key: json.loads(json.dumps(attr_val))
                 for attr_key, attr_val in attrs.items()
-                if attr_key not in IGNORED_ATTRIBUTES
+                if attr_key not in IGNORED_ATTRIBUTES and attr_val is not None
             },
         }
