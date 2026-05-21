@@ -427,11 +427,15 @@ class SaverEntity(RestoreEntity):
     def convert_to_scene_params(saved_state: Any) -> dict[str, Any]:
         state = saved_state["state"] if isinstance(saved_state, dict) else saved_state.state
         attrs = saved_state["attributes"] if isinstance(saved_state, dict) else saved_state.attributes
-        return {
-            "state": state,
-            **{
-                attr_key: json.loads(json.dumps(attr_val))
-                for attr_key, attr_val in attrs.items()
-                if attr_key not in IGNORED_ATTRIBUTES
-            },
+        attr_dict = {
+            attr_key: json.loads(json.dumps(attr_val))
+            for attr_key, attr_val in attrs.items()
+            if attr_key not in IGNORED_ATTRIBUTES and attr_val is not None
         }
+        # HA climate reproduce_state requires target_temp_low and target_temp_high together
+        # (voluptuous inclusion group). Drop both if only one is present — e.g. Better Thermostat
+        # uses heat_cool mode but only stores target_temp_low, never target_temp_high.
+        if ("target_temp_low" in attr_dict) != ("target_temp_high" in attr_dict):
+            attr_dict.pop("target_temp_low", None)
+            attr_dict.pop("target_temp_high", None)
+        return {"state": state, **attr_dict}
